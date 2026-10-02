@@ -1,0 +1,14 @@
+{
+  "name": "prescribble",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Prescribble: the AI that guesses your drawing before you finish it.",
+  "workspaces": ["packages/*", "apps/web"],
+  "scripts": {
+    "dev:web": "npm run dev -w @prescribble/web",
+    "build:web": "npm run build -w @prescribble/web",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "engines": { "node": ">=20" }
+}
