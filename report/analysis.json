@@ -1,0 +1,119 @@
+{
+  "per_class_top1_30": {
+    "cat": 0.5366666666666666,
+    "dog": 0.4533333333333333,
+    "house": 0.8,
+    "sun": 0.7066666666666667,
+    "flower": 0.7433333333333333,
+    "tree": 0.7733333333333333,
+    "car": 0.7633333333333333,
+    "bicycle": 0.8,
+    "airplane": 0.7366666666666667,
+    "fish": 0.5733333333333334,
+    "bird": 0.5566666666666666,
+    "apple": 0.7966666666666666,
+    "banana": 0.7233333333333334,
+    "umbrella": 0.7366666666666667,
+    "clock": 0.71,
+    "star": 0.83,
+    "moon": 0.5566666666666666,
+    "coffee cup": 0.6733333333333333,
+    "chair": 0.76,
+    "table": 0.5533333333333333,
+    "guitar": 0.79,
+    "envelope": 0.87,
+    "key": 0.6166666666666667,
+    "light bulb": 0.77,
+    "mushroom": 0.5166666666666667,
+    "butterfly": 0.8133333333333334,
+    "snowman": 0.6966666666666667,
+    "pizza": 0.47333333333333333,
+    "smiley face": 0.38333333333333336,
+    "ice cream": 0.73
+  },
+  "per_class_top1_100": {
+    "cat": 0.9033333333333333,
+    "dog": 0.7866666666666666,
+    "house": 0.9666666666666667,
+    "sun": 0.96,
+    "flower": 0.94,
+    "tree": 0.93,
+    "car": 0.96,
+    "bicycle": 0.9866666666666667,
+    "airplane": 0.9333333333333333,
+    "fish": 0.89,
+    "bird": 0.8266666666666667,
+    "apple": 0.94,
+    "banana": 0.9266666666666666,
+    "umbrella": 0.9133333333333333,
+    "clock": 0.85,
+    "star": 0.9666666666666667,
+    "moon": 0.6933333333333334,
+    "coffee cup": 0.8966666666666666,
+    "chair": 0.9666666666666667,
+    "table": 0.9333333333333333,
+    "guitar": 0.9733333333333334,
+    "envelope": 0.9733333333333334,
+    "key": 0.8533333333333334,
+    "light bulb": 0.8766666666666667,
+    "mushroom": 0.8666666666666667,
+    "butterfly": 0.9633333333333334,
+    "snowman": 0.96,
+    "pizza": 0.9533333333333334,
+    "smiley face": 0.9566666666666667,
+    "ice cream": 0.9433333333333334
+  },
+  "top_confusions_at_30": [
+    {
+      "count": 117,
+      "true": "smiley face",
+      "predicted": "clock"
+    },
+    {
+      "count": 81,
+      "true": "pizza",
+      "predicted": "clock"
+    },
+    {
+      "count": 77,
+      "true": "moon",
+      "predicted": "clock"
+    },
+    {
+      "count": 71,
+      "true": "table",
+      "predicted": "envelope"
+    },
+    {
+      "count": 45,
+      "true": "clock",
+      "predicted": "moon"
+    },
+    {
+      "count": 37,
+      "true": "snowman",
+      "predicted": "key"
+    },
+    {
+      "count": 37,
+      "true": "mushroom",
+      "predicted": "umbrella"
+    },
+    {
+      "count": 36,
+      "true": "mushroom",
+      "predicted": "tree"
+    },
+    {
+      "count": 36,
+      "true": "banana",
+      "predicted": "moon"
+    },
+    {
+      "count": 31,
+      "true": "flower",
+      "predicted": "tree"
+    }
+  ],
+  "mnist_mlp_test_acc": 0.9785
+}
