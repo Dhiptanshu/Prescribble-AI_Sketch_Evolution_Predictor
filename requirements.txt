@@ -1,0 +1,8 @@
+numpy
+opencv-python-headless
+torch
+torchvision
+onnx
+onnxruntime
+matplotlib
+tqdm
