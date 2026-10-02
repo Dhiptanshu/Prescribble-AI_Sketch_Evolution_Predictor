@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sketch Evolution Predictor</title>
+  <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><path d="M5 24c4-14 9-16 12-8s7 6 10-12" fill="none" stroke="url(#g)" stroke-width="3" stroke-linecap="round"/><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#7c5cff"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs></svg>
+      <div><h1>Sketch Evolution Predictor</h1><p>Guesses your drawing from the first strokes</p></div>
+    </div>
+    <div class="status">
+      <span class="chip" id="chip-model"><i class="dot"></i><span>loading model…</span></span>
+      <span class="chip" id="chip-latency" hidden></span>
+      <button class="icon-btn" id="theme" title="Toggle light / dark">◐</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="card stage">
+      <nav class="tabs" role="tablist">
+        <button class="tab active" data-mode="free">Free draw</button>
+        <button class="tab" data-mode="challenge">AI challenge</button>
+        <button class="tab" data-mode="replay">Watch real sketches</button>
+      </nav>
+
+      <div class="mode-banner" id="banner"></div>
+
+      <div class="canvas-wrap" id="canvas-wrap">
+        <canvas id="ghost" width="64" height="64"></canvas>
+        <canvas id="draw"></canvas>
+        <div class="canvas-hint" id="hint">Draw big, anywhere in the box. The AI starts guessing after your first stroke.</div>
+        <div class="progress" id="progress"><span></span></div>
+      </div>
+
+      <div class="toolbar">
+        <button class="btn" id="undo">Undo stroke</button>
+        <button class="btn" id="clear">Clear</button>
+        <label class="switch"><input type="checkbox" id="ghost-toggle" checked><span></span>Ghost completion</label>
+        <span class="spacer"></span>
+        <span class="meta" id="ink-meta">0 strokes · 0 px ink</span>
+      </div>
+    </section>
+
+    <section class="side">
+      <div class="card">
+        <div class="card-head"><h2>Top-5 guesses</h2><span class="meta" id="certainty">—</span></div>
+        <div class="top1" id="top1"><span class="label">Waiting for a stroke</span></div>
+        <ol class="bars" id="bars"></ol>
+      </div>
+      <div class="card">
+        <div class="card-head"><h2>Confidence over time</h2><span class="meta">x = ink drawn</span></div>
+        <canvas id="timeline" class="chart"></canvas>
+        <div class="legend" id="timeline-legend"></div>
+      </div>
+      <div class="card" id="mode-panel" hidden></div>
+    </section>
+
+    <section class="card results">
+      <div class="card-head">
+        <h2>How good is it, really?</h2>
+        <div class="seg" id="metric-toggle"><button class="active" data-m="top5">Top-5</button><button data-m="top1">Top-1</button></div>
+      </div>
+      <p class="sub">Measured on held-out QuickDraw test sketches, cut at each % of their ink. Nothing here is hand-entered: it is read from the training runs.</p>
+      <div class="results-grid">
+        <canvas id="acc-chart" class="chart tall"></canvas>
+        <div id="results-table"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="vendor/ort/ort.wasm.min.js"></script>
+  <script type="module" src="static/js/main.js"></script>
+</body>
+</html>

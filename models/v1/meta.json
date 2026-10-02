@@ -1,0 +1,72 @@
+{
+  "model": "fusion_ghost",
+  "classes": [
+    "cat",
+    "dog",
+    "house",
+    "sun",
+    "flower",
+    "tree",
+    "car",
+    "bicycle",
+    "airplane",
+    "fish",
+    "bird",
+    "apple",
+    "banana",
+    "umbrella",
+    "clock",
+    "star",
+    "moon",
+    "coffee cup",
+    "chair",
+    "table",
+    "guitar",
+    "envelope",
+    "key",
+    "light bulb",
+    "mushroom",
+    "butterfly",
+    "snowman",
+    "pizza",
+    "smiley face",
+    "ice cream"
+  ],
+  "img": 64,
+  "max_pts": 128,
+  "seq_feats": 5,
+  "test_results": {
+    "0.1": {
+      "top1": 0.359,
+      "top5": 0.7755555555555556,
+      "ghost_bce": 0.5263303612603082
+    },
+    "0.2": {
+      "top1": 0.5786666666666667,
+      "top5": 0.9064444444444445,
+      "ghost_bce": 0.49922620646158855
+    },
+    "0.3": {
+      "top1": 0.6814444444444444,
+      "top5": 0.9433333333333334,
+      "ghost_bce": 0.4658393809000651
+    },
+    "0.5": {
+      "top1": 0.7705555555555555,
+      "top5": 0.9696666666666667,
+      "ghost_bce": 0.3895489417182075
+    },
+    "0.75": {
+      "top1": 0.8686666666666667,
+      "top5": 0.9857777777777778,
+      "ghost_bce": 0.2637560272216797
+    },
+    "1.0": {
+      "top1": 0.9163333333333333,
+      "top5": 0.9876666666666667,
+      "ghost_bce": 0.16141624704996746
+    }
+  },
+  "latency_ms": 4.840651999984402,
+  "size_mb": 17.940392
+}
