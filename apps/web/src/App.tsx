@@ -3,6 +3,10 @@ import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { RequireAuth } from "./components/RequireAuth";
 import { ChallengePage } from "./features/challenge/ChallengePage";
+import { ClassroomsPage } from "./features/classroom/ClassroomsPage";
+import { JoinPage } from "./features/classroom/JoinPage";
+import { StudentRoomPage } from "./features/classroom/StudentRoomPage";
+import { TeacherRoomPage } from "./features/classroom/TeacherRoomPage";
 import { AdminPage } from "./features/admin/AdminPage";
 import { LoginPage, RegisterPage } from "./features/auth/AuthPages";
 import { DevelopersPage } from "./features/developers/DevelopersPage";
@@ -36,6 +40,11 @@ export function App() {
                 <Route path="gallery/:id" element={<RequireAuth><DrawingPage /></RequireAuth>} />
                 <Route path="stats" element={<RequireAuth><StatsPage /></RequireAuth>} />
                 <Route path="challenge" element={<ChallengePage />} />
+                <Route path="classroom" element={<RequireAuth><ClassroomsPage /></RequireAuth>} />
+                <Route path="classroom/:id" element={<RequireAuth><TeacherRoomPage /></RequireAuth>} />
+                <Route path="join" element={<JoinPage />} />
+                <Route path="join/:code" element={<JoinPage />} />
+                <Route path="room/:id" element={<StudentRoomPage />} />
                 <Route path="developers" element={<DevelopersPage />} />
                 <Route path="admin" element={<AdminPage />} />
                 <Route path="settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />

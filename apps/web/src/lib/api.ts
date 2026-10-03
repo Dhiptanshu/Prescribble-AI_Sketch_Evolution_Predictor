@@ -18,12 +18,14 @@ export class NetworkError extends Error {}
 
 const BASE = "/api/v1";
 
-export async function api<T = void>(path: string, opts: { method?: string; json?: unknown; signal?: AbortSignal } = {}): Promise<T> {
+export async function api<T = void>(path: string, opts: { method?: string; json?: unknown; signal?: AbortSignal; headers?: Record<string, string> } = {}): Promise<T> {
   let res: Response;
   try {
     res = await fetch(BASE + path, {
       method: opts.method ?? (opts.json !== undefined ? "POST" : "GET"),
-      headers: opts.json !== undefined ? { "Content-Type": "application/json" } : undefined,
+      headers: opts.json !== undefined || opts.headers
+        ? { ...(opts.json !== undefined ? { "Content-Type": "application/json" } : {}), ...opts.headers }
+        : undefined,
       body: opts.json !== undefined ? JSON.stringify(opts.json) : undefined,
       credentials: "include",
       signal: opts.signal,
