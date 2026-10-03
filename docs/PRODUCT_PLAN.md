@@ -58,7 +58,7 @@ Score = `round((1 - fraction) * 100)`; a drawing the AI never gets scores 0. Pla
 | **3. Compete** (done) | Daily challenge, server-side verification, leaderboard, streaks | Scores are reproducible from stored strokes |
 | **4. Platform** (done) | `/v1/predict`, API keys, usage metering, rate limits, docs page, embeddable widget, admin metrics | A third-party page can embed the widget with a key |
 | **5. Classrooms** (done) | Rooms, live race, teacher view (WebSocket) | Two browsers play a synchronised round |
-| **6. Model flywheel** | Opt-in feedback, dataset export, retrain on Kaggle, model registry/versions, scale to 100+ classes, mouse-drawing adaptation | New model version ships without touching app code; measured gain on real user drawings |
+| **6. Model flywheel** (built; real-user gain not yet measured) | Opt-in feedback, dataset export, retrain on Kaggle, model registry/versions, scale to 100+ classes, mouse-drawing adaptation | New model version ships without touching app code; measured gain on real user drawings |
 | **7. Launch hardening** | Docker/compose, CI, security review, load test, accessibility pass, docs, backups | Clean `docker compose up`, CI green, threat-model checklist ticked |
 
 ### Progress (paused after Phase 1, core)
@@ -111,6 +111,14 @@ Score = `round((1 - fraction) * 100)`; a drawing the AI never gets scores 0. Pla
 - Realtime over a WebSocket (`/rooms/{id}/live`): teacher by cookie, student by first-message token, Origin checked; the web client reconnects and falls back to HTTP re-reads. Round phases are derived from timestamps, timers only trigger pushes. Details, limits and the single-process caveat: `docs/CLASSROOMS.md`.
 - **Tests:** 130 API (31 new), 27 web unit (6 new), 23 full-product Playwright in real Edge (2 new: teacher plus two students in separate browser profiles through a whole round, and a stranger refused). Found by the e2e test and fixed: a student page re-sent an already handed-in drawing when the clock hit zero (server refused with 409).
 - Not done: student removal and nickname moderation, load test with a full class, multi-replica fan-out (needs Redis pub/sub).
+
+**Phase 6 built (model flywheel; details, data rules and results in `docs/FLYWHEEL.md`)**
+- **A new model version ships without touching app code.** `models/registry.json` names the live version; the API, the web app and the widget all read it (the file is never cached). Registration hashes the ONNX file, and promotion is **gated**: the candidate must run, must not drop a class, and must not be worse than the live model (tolerance 1 point Top-5) on held-out sketches of the shared classes, plus on held-out real user drawings once there are 30. Rollback and a recorded `--force` exist. A challenge day or classroom round keeps its own model when the live one changes. Tests: 13 registry, 8 API (version switching, pinning, reload, caching, parity between the gate's scorer and the server's), 3 web unit, 3 widget unit, and a browser test that promotes a version on disk and watches the app load it.
+- **Consent-gated feedback.** Training-ready = owner's consent on now + a label the person confirmed + a class of the live model + not a duplicate. New fields on drawings (confirmed label, pointer type: mouse/touch/pen). `python -m app.cli export-training` writes JSONL with no account identity and a stable train / held-out split. Admin dashboard tile with the counts. 14 API tests, 5 mix/split tests.
+- **Teach the AI page** (`/teach`): explicit consent, then the word with the fewest examples, saved as a confirmed drawing with its pointer type; kept out of gallery and stats; own quota; one-click withdrawal.
+- **100 classes:** class sets `v1`/`v2` (`src/classsets.py`), and **v2 trained on a Kaggle GPU**: Top-5 79.7% at 30% of the ink (v1, 30 classes: 94.3%). The gate passed (91.9% vs 92.8% Top-5 on the 30 shared classes, restricted), but **v2 is not live**: whether to trade accuracy on the original 30 objects for 70 more is the owner's call.
+- **Mouse-drawing adaptation:** fine-tuning with user drawings mixed in and a before / after measurement on the held-out real drawings and on QuickDraw (`src/flywheel/finetune.py`, `kaggle/flywheel/run_finetune.py`). Only smoke-tested: it needs real drawings, and nobody has taught the AI yet.
+- Found by the tests and fixed: the Teach page kept showing the old contribution count after a withdrawal.
 
 **Left over:** build the Docker image once Docker Desktop is running; one real lab rehearsal when possible (the lab runbook lists what is untested).
 
