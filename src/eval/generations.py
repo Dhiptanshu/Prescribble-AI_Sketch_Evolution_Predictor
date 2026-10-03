@@ -87,8 +87,7 @@ def build() -> str:
     if ranked:
         out += [f"## {latest}: which classes work\n", f"![per class](figures/{latest}_per_class.png)\n", table(ranked[:12], "Easiest classes") + "\n", table(ranked[-12:][::-1], "Hardest classes") + "\n"]
         vals = np.array([f for _, f, _ in ranked])
-        out.append(f"{int((vals >= 0.9).sum())} of {len(vals)} classes reach 90% Top-1 on the finished drawing, {int((vals >= 0.5).sum())} reach 50%, and {int((vals < 0.3).sum())} stay below 30%: "
-                   "the weakest are categories that are hard to tell apart even for people (similar objects or abstract shapes).\n")
+        out.append(f"{int((vals >= 0.9).sum())} of {len(vals)} classes reach 90% Top-1 on the finished drawing, {int((vals >= 0.5).sum())} reach 50%, and {int((vals < 0.3).sum())} stay below 30%.\n")
     return "\n".join(out)
 
 
