@@ -17,10 +17,12 @@ COPY apps/api/requirements.txt .
 RUN pip install -r requirements.txt
 COPY apps/api/ ./
 COPY --from=web /repo/apps/web/dist /app/web
+COPY models/ /app/models/
 RUN useradd --system --uid 10001 prescribble && mkdir /data && chown prescribble /data
 USER prescribble
 ENV PRESCRIBBLE_ENV=prod \
     PRESCRIBBLE_WEB_DIST=/app/web \
+    PRESCRIBBLE_MODELS_DIR=/app/models \
     PRESCRIBBLE_DATABASE_URL=sqlite:////data/prescribble.db
 VOLUME /data
 EXPOSE 8100
