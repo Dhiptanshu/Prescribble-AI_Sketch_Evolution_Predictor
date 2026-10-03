@@ -28,8 +28,7 @@ def run(*args) -> int:
     print(">>", " ".join(args), flush=True)
     OUT.mkdir(parents=True, exist_ok=True)
     with open(LOG, "a", encoding="utf-8") as log:
-        log.write(f">> {' '.join(args)}
-")
+        log.write(f">> {' '.join(args)}" + chr(10))
         proc = subprocess.Popen([sys.executable, *args], cwd=WORK, env=ENV, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
         for line in proc.stdout:
             print(line, end="", flush=True)
