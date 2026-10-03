@@ -139,11 +139,12 @@ def start_round(room_id: int, body: RoundStart, request: Request, user: User = D
     current = latest_round(db, room.id)
     if current and round_phase(current, now, s) != "results":
         raise ApiError(409, "round_in_progress", "The current round has not finished yet.")
-    classes = get_scorer(request).classes
+    scorer = get_scorer(request)
+    classes = scorer.classes
     if body.target is not None and body.target not in classes:
         raise ApiError(422, "unknown_class", "The model does not know that object.", {"target": body.target})
     used = set(db.scalars(select(RoomRound.target).where(RoomRound.room_id == room.id)))
-    target = body.target or secrets.choice([c for c in classes if c not in used] or classes)     # fresh words first
+    target = body.target or secrets.choice([c for c in scorer.challenge_classes if c not in used] or scorer.challenge_classes)     # fresh, fair words first
     number = (current.no if current else 0) + 1
     if number > s.max_rounds_per_room:
         raise ApiError(409, "too_many_rounds", f"A room can have {s.max_rounds_per_room} rounds. Create a new room to keep playing.")

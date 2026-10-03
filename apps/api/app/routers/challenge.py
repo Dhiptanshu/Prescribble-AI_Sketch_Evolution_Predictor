@@ -32,7 +32,7 @@ def _ensure_day(db: Session, request: Request, day: date) -> DailyChallenge:
         return row
     scorer = get_scorer(request)
     previous = db.scalar(select(DailyChallenge.target).where(DailyChallenge.day == day - timedelta(days=1)))
-    row = DailyChallenge(day=day, target=pick_target(scorer.classes, day, request.app.state.settings.secret_key, previous),
+    row = DailyChallenge(day=day, target=pick_target(scorer.challenge_classes, day, request.app.state.settings.secret_key, previous),
                          model_version=scorer.version)
     db.add(row)
     try:

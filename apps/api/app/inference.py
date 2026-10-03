@@ -14,6 +14,7 @@ from fastapi import Request
 
 from app.classes import models_dir
 from app.errors import ApiError
+from app.services.daily import challenge_classes
 from app.services.registry import active_version
 from app.services.scoring import FRACTIONS, Step
 
@@ -43,7 +44,9 @@ class Scorer:
     def __init__(self, models_dir: Path, version: str, ml_root: Path | None = None):
         folder = models_dir / version
         self.version = version
-        self.classes: list[str] = json.loads((folder / "meta.json").read_text(encoding="utf-8"))["classes"]
+        meta = json.loads((folder / "meta.json").read_text(encoding="utf-8"))
+        self.classes: list[str] = meta["classes"]
+        self.challenge_classes: list[str] = challenge_classes(meta)       # classes fair to set as a daily word or a round word
         self._p = _load_pipeline(ml_root)
         self._session = ort.InferenceSession(str(folder / "sketch.onnx"), providers=["CPUExecutionProvider"])
 
