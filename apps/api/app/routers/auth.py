@@ -9,7 +9,7 @@ from app.deps import get_current_user, get_current_user_optional
 from app.errors import ApiError
 from app.models import User
 from app.ratelimit import auth_rate_limit
-from app.schemas import DeleteAccountIn, LoginIn, ProfileUpdate, RegisterIn, SessionOut, UserOut
+from app.schemas import DeleteAccountIn, DrawingOut, LoginIn, ProfileUpdate, RegisterIn, SessionOut, UserOut
 from app.security import create_session_token, hash_password, needs_rehash, verify_password
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -86,7 +86,9 @@ def update_me(body: ProfileUpdate, user: User = Depends(get_current_user), db: S
 @me_router.get("/export")
 def export_me(user: User = Depends(get_current_user)):
     """Everything we hold about the user (data portability). Grows as features add tables."""
-    return {"user": UserOut.model_validate(user).model_dump(mode="json"), "drawings": []}
+    drawings = sorted(user.drawings, key=lambda d: d.id)
+    return {"user": UserOut.model_validate(user).model_dump(mode="json"),
+            "drawings": [DrawingOut.model_validate(d).model_dump(mode="json") for d in drawings]}
 
 
 @me_router.delete("", status_code=204)

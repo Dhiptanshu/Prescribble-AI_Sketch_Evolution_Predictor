@@ -1,5 +1,6 @@
 """Request / response schemas (the public contract of the API)."""
-from datetime import datetime
+from datetime import date, datetime
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
@@ -63,3 +64,94 @@ class SessionOut(BaseModel):
     """Who is signed in right now. Always HTTP 200: `user` is null for visitors (no 401 noise in the browser console)."""
 
     user: UserOut | None
+
+
+# ---------- drawings ----------
+Coord = Annotated[float, Field(ge=0, le=255)]
+Point = tuple[Coord, Coord]
+
+
+class DrawingCreate(BaseModel):
+    strokes: list[Annotated[list[Point], Field(min_length=1)]] = Field(min_length=1)
+    label: str | None = Field(default=None, max_length=40)
+    ai_guess: str = Field(min_length=1, max_length=40)
+    ai_confidence: float = Field(ge=0, le=1)
+    recognised_at: float | None = Field(default=None, ge=0, le=1)
+    mode: Literal["free", "challenge"] = "free"
+    duration_ms: int | None = Field(default=None, ge=0, le=3_600_000)
+    model_version: str = Field(pattern=r"^v\d{1,3}$")
+
+
+class DrawingPatch(BaseModel):
+    label: str | None = Field(max_length=40)      # required key; null clears the label
+
+
+class DrawingOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    created_at: datetime
+    label: str | None
+    ai_guess: str
+    ai_confidence: float
+    recognised_at: float | None
+    mode: str
+    model_version: str
+    strokes: list[list[tuple[float, float]]]
+    n_strokes: int
+    ink: float
+    duration_ms: int | None
+    share_token: str | None
+
+
+class DrawingPage(BaseModel):
+    items: list[DrawingOut]
+    next_before: int | None
+
+
+class ShareOut(BaseModel):
+    token: str
+
+
+class PublicDrawingOut(BaseModel):
+    """What anyone with the link may see. No email, no user id."""
+
+    strokes: list[list[tuple[float, float]]]
+    label: str | None
+    ai_guess: str
+    ai_confidence: float
+    recognised_at: float | None
+    created_at: datetime
+    model_version: str
+    author: str
+
+
+# ---------- stats ----------
+class ClassStat(BaseModel):
+    label: str
+    count: int
+    avg_recognised_at: float | None
+
+
+class Streak(BaseModel):
+    current: int
+    longest: int
+
+
+class DayCount(BaseModel):
+    date: date
+    count: int
+
+
+class StatsOut(BaseModel):
+    total: int
+    labelled: int
+    ai_final_correct: int
+    ai_ever_recognised: int
+    avg_recognised_at: float | None
+    early_rate: float | None
+    by_class: list[ClassStat]
+    streak: Streak
+    activity: list[DayCount]
+    first_drawing_at: datetime | None
+    last_drawing_at: datetime | None

@@ -6,15 +6,17 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app import models as _models  # noqa: F401  (registers the tables on Base.metadata)
 from app.config import Settings, get_settings
 from app.db import Base, make_engine, make_session_factory
 from app.errors import install_error_handlers
 from app.ratelimit import SlidingWindowLimiter
-from app.routers import auth, health
+from app.routers import auth, drawings, health, public, stats
 
 API_PREFIX = "/api/v1"
+MAX_BODY_BYTES = 1_000_000      # API requests above this are refused before parsing (drawings are well under 100 KB)
 log = logging.getLogger("prescribble.access")
 
 
@@ -33,6 +35,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.engine = engine
     app.state.session_factory = make_session_factory(engine)
     app.state.auth_limiter = SlidingWindowLimiter(settings.auth_attempts_per_minute)
+    app.state.write_limiter = SlidingWindowLimiter(settings.writes_per_minute)
+    app.state.public_limiter = SlidingWindowLimiter(settings.public_reads_per_minute)
 
     if settings.env == "test":
         Base.metadata.create_all(engine)
@@ -53,10 +57,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                  (time.perf_counter() - t0) * 1000, rid)
         return response
 
+    @app.middleware("http")
+    async def limit_body_size(request: Request, call_next):
+        length = request.headers.get("content-length", "")
+        if length.isdigit() and int(length) > MAX_BODY_BYTES:
+            return JSONResponse({"error": {"code": "payload_too_large", "message": "The request body is too large."}}, status_code=413)
+        return await call_next(request)
+
     install_error_handlers(app)
     app.include_router(health.router)
     app.include_router(auth.router, prefix=API_PREFIX)
     app.include_router(auth.me_router, prefix=API_PREFIX)
+    app.include_router(stats.router, prefix=API_PREFIX)
+    app.include_router(drawings.router, prefix=API_PREFIX)
+    app.include_router(public.router, prefix=API_PREFIX)
     if settings.web_dist:
         from app.web import install_web
         install_web(app, settings.web_dist)      # registered last so every API route wins

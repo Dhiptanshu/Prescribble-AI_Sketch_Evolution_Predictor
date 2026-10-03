@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     web_dist: Path | None = None              # built web app to serve (single-container deploys)
     max_strokes: int = 60                     # input limits for submitted drawings
     max_points: int = 2000
+    max_drawings_per_user: int = 200          # free-plan quota
+    writes_per_minute: int = 30               # per signed-in user
+    public_reads_per_minute: int = 120        # per client IP, shared-drawing pages
+    models_dir: Path | None = None            # folder holding models/<version>/meta.json; auto-detected when unset
 
     @model_validator(mode="after")
     def _finalise(self):

@@ -29,3 +29,7 @@ def client_ip(request: Request) -> str:
 
 def auth_rate_limit(request: Request) -> None:
     request.app.state.auth_limiter.check(client_ip(request))
+
+
+def public_rate_limit(request: Request) -> None:
+    request.app.state.public_limiter.check(client_ip(request))

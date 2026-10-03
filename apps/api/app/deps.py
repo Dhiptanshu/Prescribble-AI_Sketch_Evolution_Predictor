@@ -35,3 +35,9 @@ def require_admin(user: User = Depends(get_current_user)) -> User:
     if not user.is_admin:
         raise ApiError(403, "forbidden", "Admin access required.")
     return user
+
+
+def write_guard(request: Request, user: User = Depends(get_current_user)) -> User:
+    """Signed-in user, limited to `writes_per_minute` mutating calls."""
+    request.app.state.write_limiter.check(f"user:{user.id}")
+    return user
