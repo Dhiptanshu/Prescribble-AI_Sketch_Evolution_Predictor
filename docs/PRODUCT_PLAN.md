@@ -56,7 +56,7 @@ Score = `round((1 - fraction) * 100)`; a drawing the AI never gets scores 0. Pla
 | **1. Foundation** | Monorepo, API skeleton (config, DB, migrations, auth, health), engine package, web shell + design system, Studio ported with guest mode | Register/login works end to end, Studio runs from the new app, API and engine tests green |
 | **2. Accounts & persistence** (done) | Save drawings, gallery, personal stats, share links, replay export (WebM) | A user's history and stats persist and are computed from real records |
 | **3. Compete** (done) | Daily challenge, server-side verification, leaderboard, streaks | Scores are reproducible from stored strokes |
-| **4. Platform** | `/v1/predict`, API keys, usage metering, rate limits, docs page, embeddable widget, admin metrics | A third-party page can embed the widget with a key |
+| **4. Platform** (done) | `/v1/predict`, API keys, usage metering, rate limits, docs page, embeddable widget, admin metrics | A third-party page can embed the widget with a key |
 | **5. Classrooms** | Rooms, live race, teacher view (WebSocket) | Two browsers play a synchronised round |
 | **6. Model flywheel** | Opt-in feedback, dataset export, retrain on Kaggle, model registry/versions, scale to 100+ classes, mouse-drawing adaptation | New model version ships without touching app code; measured gain on real user drawings |
 | **7. Launch hardening** | Docker/compose, CI, security review, load test, accessibility pass, docs, backups | Clean `docker compose up`, CI green, threat-model checklist ticked |
@@ -96,6 +96,15 @@ Score = `round((1 - fraction) * 100)`; a drawing the AI never gets scores 0. Pla
 - **Settings page:** display name, leaderboard visibility, training consent (off by default), download my data, delete my account.
 - **Tests:** 75 API (incl. leaderboard rules, privacy, day rollover with an injected clock, cascade delete), 21 web unit, 20 Playwright e2e (incl. scoring a real held-out sketch through the UI, three attempts then lock, privacy toggle, and an instant scripted submission being kept off the board).
 - Found by the e2e tests and fixed: a heading whose `aria-label` hid the word from screen readers, and a post-deletion redirect that went to /login instead of home.
+
+**Phase 4 done (developer platform: widget, REST API, keys, metering, admin)**
+- **Two integration paths, matching the privacy stance.** The **widget** (`<script>` tag or `<prescribble-canvas>`, 60 kB) runs the model inside the visitor's own browser: no key, nothing to host, and the drawing never leaves the page. The **REST API** (`POST /api/v1/predict`) is for backends and other languages and uses **secret keys**.
+- **Keys:** 192-bit random, shown once, stored only as a SHA-256 hash, revocable instantly, up to 5 active per account. Requests that carry a browser `Origin` header are refused (`browser_not_allowed`), so a key leaked into front-end code cannot be abused from a web page. A key is not a login and a login is not a key.
+- **Limits and metering:** per-key burst limit (60/min) and daily quota (1000, resets at midnight UTC) with `Retry-After` and `RateLimit-*` headers; real per-key, per-day counters (requests, errors, model time) feed a usage chart and the admin dashboard. The limits shown in the docs are read from the live settings.
+- **Admin:** `GET /admin/metrics` and an Operations page (accounts, drawings, challenge players and flagged attempts, active keys, 14-day request chart, busiest keys by owner name). Admins are promoted only by the server CLI (`python -m app.cli make-admin <email>`); signing up never grants it.
+- **Developer docs page** (`/developers`): live widget demo loaded exactly as a customer would load it, cURL / Python / Node examples, error-code table, and a key manager. The example request/response is **captured from the real model** and an API test fails if it ever drifts.
+- **Cross-origin hardening:** widget script, model and WebAssembly runtime are served with CORS only under `widget/`, `models/`, `ort/`; the app's own files stay same-origin.
+- **Tests:** 99 API, 34 unit (engine 6, widget 7, web 21), 25 Playwright e2e. The embed test hosts a "customer site" on a separate real origin and asserts from the network log that the widget makes no request carrying data and talks to no third host. (A fake in-browser document is refused localhost access by Edge's local-network protection, so the test uses a real second server.)
 
 **Left over:** build the Docker image once Docker Desktop is running; one real lab rehearsal when possible (the lab runbook lists what is untested).
 

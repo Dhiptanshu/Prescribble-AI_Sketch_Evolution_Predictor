@@ -35,6 +35,16 @@ npm run build:web
 python3 apps/web/serve.py                     # http://localhost:8765, SPA fallback, no backend (offline mode)
 ```
 
+## Operator tasks
+```bash
+cd apps/api
+python -m app.cli make-admin someone@example.com      # promote (the only way to become an admin)
+python -m app.cli remove-admin someone@example.com
+```
+
+## The embeddable widget
+`packages/widget` builds to one script (`npm run build:widget`; `npm run build:web` and `npm run dev:web` do it first). It is served from `/widget/prescribble-widget.js` and loads the model and runtime from the same host, so any page can embed it. See `/developers` for the user-facing docs.
+
 ## Single-origin mode (API serves the built web app)
 ```bash
 npm run build:web
@@ -75,6 +85,8 @@ alembic upgrade head                                     # also runs automatical
 | `MODEL_VERSION` | `v1` | the model that scores daily-challenge attempts (needs `models/<version>/`) |
 | `ML_ROOT` | auto | folder containing the `src` training-pipeline package (the Docker image places it in `/app`) |
 | `ATTEMPTS_PER_DAY` | `3` | scored attempts per user per UTC day |
+| `API_PER_MINUTE` / `API_DAILY_LIMIT` | `60` / `1000` | REST API limits per key (the daily limit is stored on each key when it is created) |
+| `MAX_KEYS_PER_USER` | `5` | active API keys per account |
 
 ## Model versions
 `models/<version>/` holds `sketch.onnx`, `meta.json`, `results.json`, `samples.json`. The web build copies it into `public/models/`.
