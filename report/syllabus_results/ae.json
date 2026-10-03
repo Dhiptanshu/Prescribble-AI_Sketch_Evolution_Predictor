@@ -1,0 +1,26 @@
+{
+  "epochs": 15,
+  "bottleneck": {
+    "2": {
+      "test_mse": 0.04479553421954719,
+      "test_bce": 0.193782936065051,
+      "compression": 392.0
+    },
+    "8": {
+      "test_mse": 0.018159010782047194,
+      "test_bce": 0.11692885542889031,
+      "compression": 98.0
+    },
+    "32": {
+      "test_mse": 0.004530335811692841,
+      "test_bce": 0.07429863131776147,
+      "compression": 24.5
+    }
+  },
+  "denoising": {
+    "noise_std": 0.5,
+    "denoising_ae_mse_on_noisy_input": 0.011934729253029337,
+    "plain_ae_mse_on_noisy_input": 0.08901178850446428,
+    "mse_of_the_noisy_image_itself": 0.1157267838716507
+  }
+}

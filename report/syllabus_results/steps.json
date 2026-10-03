@@ -1,0 +1,37 @@
+[
+  {
+    "step": "digit_cnn",
+    "exit": 0,
+    "seconds": 86
+  },
+  {
+    "step": "ae",
+    "exit": 0,
+    "seconds": 67
+  },
+  {
+    "step": "vae",
+    "exit": 0,
+    "seconds": 115
+  },
+  {
+    "step": "gan",
+    "exit": 0,
+    "seconds": 166
+  },
+  {
+    "step": "det_scratch",
+    "exit": 0,
+    "seconds": 704
+  },
+  {
+    "step": "det_yolov8",
+    "exit": 0,
+    "seconds": 1569
+  },
+  {
+    "step": "vgg",
+    "exit": 0,
+    "seconds": 1057
+  }
+]
