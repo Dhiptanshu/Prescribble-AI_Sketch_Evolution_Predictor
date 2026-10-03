@@ -1,0 +1,13 @@
+{
+  "id": "dhiptanshumalik/sketch-evolution-syllabus",
+  "title": "Sketch Evolution Syllabus",
+  "code_file": "run_syllabus.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "dataset_sources": ["dhiptanshumalik/sketch-evolution-data"],
+  "competition_sources": [],
+  "kernel_sources": []
+}

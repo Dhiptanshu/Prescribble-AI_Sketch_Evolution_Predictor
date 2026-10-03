@@ -17,6 +17,10 @@ def main(user: str):
     shutil.copytree(ROOT / "src", STAGE / "src", ignore=shutil.ignore_patterns("__pycache__"))
     (STAGE / "data" / "processed").mkdir(parents=True)
     shutil.copy(ROOT / "data" / "processed" / "sketches.pkl", STAGE / "data" / "processed" / "sketches.pkl")
+    for rel in ("runs/cnn/results.json", "runs/mlp_mnist/results.json"):        # small baselines the syllabus experiments compare against
+        if (ROOT / rel).exists():
+            (STAGE / rel).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(ROOT / rel, STAGE / rel)
     meta = {"title": "Sketch Evolution Data", "id": f"{user}/sketch-evolution-data", "licenses": [{"name": "other"}],
             "description": "Derived from Google QuickDraw (CC BY 4.0) plus the project source code."}
     json.dump(meta, open(STAGE / "dataset-metadata.json", "w"), indent=2)
