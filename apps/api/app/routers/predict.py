@@ -9,7 +9,7 @@ from app.deps import authenticate_key, seconds_until_midnight_utc
 from app.errors import ApiError
 from app.inference import get_scorer
 from app.models import ApiKey
-from app.schemas import Guess, ModelInfo, PredictIn, PredictOut
+from app.schemas import Guess, Limits, ModelInfo, PredictIn, PredictOut
 from app.services.drawings import enforce_limits, ink_length, normalise
 from app.services.metering import record, used_on
 
@@ -18,9 +18,11 @@ router = APIRouter(tags=["public api"])
 
 @router.get("/model", response_model=ModelInfo)
 def model_info(request: Request):
-    """Which model answers predictions, and the objects it knows. No key needed."""
-    scorer = get_scorer(request)
-    return {"version": scorer.version, "classes": scorer.classes}
+    """Which model answers predictions, the objects it knows, and the API limits. No key needed."""
+    scorer, s = get_scorer(request), request.app.state.settings
+    return ModelInfo(version=scorer.version, classes=scorer.classes, limits=Limits(
+        requests_per_minute=s.api_per_minute, requests_per_day=s.api_daily_limit, max_strokes=s.max_strokes,
+        max_points=s.max_points, max_active_keys=s.max_keys_per_user, top_k_max=10))
 
 
 @router.post("/predict", response_model=PredictOut)

@@ -288,9 +288,19 @@ class PredictOut(BaseModel):
     inference_ms: float
 
 
+class Limits(BaseModel):
+    requests_per_minute: int
+    requests_per_day: int
+    max_strokes: int
+    max_points: int
+    max_active_keys: int
+    top_k_max: int
+
+
 class ModelInfo(BaseModel):
     version: str
     classes: list[str]
+    limits: Limits                     # what the developer docs quote, read from the live settings so they cannot drift
 
 
 class CountPair(BaseModel):

@@ -216,7 +216,21 @@ def test_daily_series_aggregates_several_keys_and_fills_gaps(app, client, make_u
 def test_model_info_is_public(client):
     meta = json.loads((REPO_MODELS / "v1" / "meta.json").read_text(encoding="utf-8"))
     r = client.get(f"{API}/model")
-    assert r.status_code == 200 and r.json() == {"version": "v1", "classes": meta["classes"]}
+    s = client.app.state.settings
+    assert r.status_code == 200 and r.json() == {"version": "v1", "classes": meta["classes"], "limits": {
+        "requests_per_minute": s.api_per_minute, "requests_per_day": s.api_daily_limit, "max_strokes": s.max_strokes,
+        "max_points": s.max_points, "max_active_keys": s.max_keys_per_user, "top_k_max": 10}}
+
+
+def test_the_documented_example_is_what_the_api_really_returns(app, client, make_user):
+    """The developer docs show this exact request and response (captured from the real model). If the model or pipeline changes, update the docs."""
+    make_user()
+    key = create_key(client)["key"]
+    body = call(app, key, TRIANGLE, top_k=3).json()
+    assert [g["label"] for g in body["predictions"]] == ["pizza", "star", "house"]
+    for got, want in zip(body["predictions"], (0.72533, 0.2596, 0.01092)):
+        assert abs(got["probability"] - want) < 0.01, (got, want)
+    assert body["ink"] == 602.1 and body["model"] == "v1"
 
 
 def test_admin_metrics_are_for_admins_and_match_the_data(app, client, other_client, make_user):
