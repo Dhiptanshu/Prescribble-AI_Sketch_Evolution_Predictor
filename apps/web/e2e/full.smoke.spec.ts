@@ -61,9 +61,9 @@ test.describe("full product (API serves the built app)", () => {
     expect(await page.evaluate(() => document.cookie)).not.toContain("prescribble_session");   // httpOnly: invisible to scripts
 
     await page.getByRole("button", { name: "Sign out" }).click();
-    await expect(page.getByRole("link", { name: "Sign in" })).toBeVisible();
+    await expect(page.getByRole("banner").getByRole("link", { name: "Sign in" })).toBeVisible();
 
-    await page.getByRole("link", { name: "Sign in" }).click();
+    await page.getByRole("banner").getByRole("link", { name: "Sign in" }).click();
     await page.getByLabel("Email").fill(email);
     await page.getByLabel("Password").fill("definitely-the-wrong-one");
     await page.getByRole("button", { name: "Sign in" }).click();
