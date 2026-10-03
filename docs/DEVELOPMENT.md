@@ -87,6 +87,9 @@ alembic upgrade head                                     # also runs automatical
 | `ATTEMPTS_PER_DAY` | `3` | scored attempts per user per UTC day |
 | `API_PER_MINUTE` / `API_DAILY_LIMIT` | `60` / `1000` | REST API limits per key (the daily limit is stored on each key when it is created) |
 | `MAX_KEYS_PER_USER` | `5` | active API keys per account |
+| `MAX_OPEN_ROOMS` / `MAX_ROOM_MEMBERS` / `MAX_ROUNDS_PER_ROOM` | `10` / `60` / `30` | classroom limits (see `docs/CLASSROOMS.md`) |
+| `ROUND_MIN_S` / `ROUND_MAX_S` / `ROUND_GRACE_S` | `10` / `300` / `3` | round length range and the collection grace period |
+| `JOINS_PER_MINUTE` | `20` | room joins per client IP |
 
 ## Model versions
 `models/<version>/` holds `sketch.onnx`, `meta.json`, `results.json`, `samples.json`. The web build copies it into `public/models/`.

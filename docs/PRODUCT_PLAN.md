@@ -57,7 +57,7 @@ Score = `round((1 - fraction) * 100)`; a drawing the AI never gets scores 0. Pla
 | **2. Accounts & persistence** (done) | Save drawings, gallery, personal stats, share links, replay export (WebM) | A user's history and stats persist and are computed from real records |
 | **3. Compete** (done) | Daily challenge, server-side verification, leaderboard, streaks | Scores are reproducible from stored strokes |
 | **4. Platform** (done) | `/v1/predict`, API keys, usage metering, rate limits, docs page, embeddable widget, admin metrics | A third-party page can embed the widget with a key |
-| **5. Classrooms** | Rooms, live race, teacher view (WebSocket) | Two browsers play a synchronised round |
+| **5. Classrooms** (done) | Rooms, live race, teacher view (WebSocket) | Two browsers play a synchronised round |
 | **6. Model flywheel** | Opt-in feedback, dataset export, retrain on Kaggle, model registry/versions, scale to 100+ classes, mouse-drawing adaptation | New model version ships without touching app code; measured gain on real user drawings |
 | **7. Launch hardening** | Docker/compose, CI, security review, load test, accessibility pass, docs, backups | Clean `docker compose up`, CI green, threat-model checklist ticked |
 
@@ -106,9 +106,15 @@ Score = `round((1 - fraction) * 100)`; a drawing the AI never gets scores 0. Pla
 - **Cross-origin hardening:** widget script, model and WebAssembly runtime are served with CORS only under `widget/`, `models/`, `ort/`; the app's own files stay same-origin.
 - **Tests:** 99 API, 34 unit (engine 6, widget 7, web 21), 25 Playwright e2e. The embed test hosts a "customer site" on a separate real origin and asserts from the network log that the widget makes no request carrying data and talks to no third host. (A fake in-browser document is refused localhost access by Edge's local-network protection, so the test uses a real second server.)
 
+**Phase 5 done (classrooms: rooms, live rounds, teacher view)**
+- Teachers (accounts) open rooms; students join with a 6-character code and a nickname, no account (room token, hash stored). Rounds have one word and a timer; students draw while the AI guesses live in their own browser, and the server scores the handed-in drawing with the daily-challenge scorer. Scores are hidden until the round ends, then ranking, the AI's record on the round (how many drawings it named, typical ink fraction), everyone's drawings and class standings are shown.
+- Realtime over a WebSocket (`/rooms/{id}/live`): teacher by cookie, student by first-message token, Origin checked; the web client reconnects and falls back to HTTP re-reads. Round phases are derived from timestamps, timers only trigger pushes. Details, limits and the single-process caveat: `docs/CLASSROOMS.md`.
+- **Tests:** 130 API (31 new), 27 web unit (6 new), 23 full-product Playwright in real Edge (2 new: teacher plus two students in separate browser profiles through a whole round, and a stranger refused). Found by the e2e test and fixed: a student page re-sent an already handed-in drawing when the clock hit zero (server refused with 409).
+- Not done: student removal and nickname moderation, load test with a full class, multi-replica fan-out (needs Redis pub/sub).
+
 **Left over:** build the Docker image once Docker Desktop is running; one real lab rehearsal when possible (the lab runbook lists what is untested).
 
-**Next:** Phase 2 (save drawings, gallery, stats, share links, replay export).
+**Next:** Phase 6 (feedback and retrain flywheel), then Phase 7 (hardening).
 
 ## 5. Quality bars
 - Backend: pytest with an isolated DB per test; auth, ownership and validation covered; migrations tested up and down.
