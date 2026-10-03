@@ -79,9 +79,11 @@ class DrawingCreate(BaseModel):
     ai_guess: str = Field(min_length=1, max_length=40)
     ai_confidence: float = Field(ge=0, le=1)
     recognised_at: float | None = Field(default=None, ge=0, le=1)
-    mode: Literal["free", "challenge"] = "free"
+    mode: Literal["free", "challenge", "teach"] = "free"
     duration_ms: int | None = Field(default=None, ge=0, le=3_600_000)
     model_version: str = Field(pattern=r"^v\d{1,3}$")
+    label_confirmed: bool = False                       # true only when the person checked the label themselves (honoured only with a label)
+    input_type: Literal["mouse", "touch", "pen"] | None = None
 
 
 class DrawingPatch(BaseModel):
@@ -98,6 +100,8 @@ class DrawingOut(BaseModel):
     ai_confidence: float
     recognised_at: float | None
     mode: str
+    label_confirmed: bool
+    input_type: str | None
     model_version: str
     strokes: list[list[tuple[float, float]]]
     n_strokes: int
@@ -331,6 +335,30 @@ class ApiMetrics(BaseModel):
     top_keys: list[TopKey]
 
 
+class TrainingMetrics(BaseModel):
+    """Consented, label-confirmed drawings that a retraining job could use right now (for the live model's classes)."""
+
+    ready: int
+    classes_covered: int
+    classes_total: int | None
+    contributors: int
+    by_input_type: dict[str, int]
+
+
+class TeachSummary(BaseModel):
+    mine: int                       # this person's teaching contributions
+    ready_total: int                # everyone's training-ready drawings
+    classes_covered: int
+    classes_total: int | None
+    consent: bool
+    model_version: str
+
+
+class TeachNext(BaseModel):
+    target: str
+    summary: TeachSummary
+
+
 class AdminMetrics(BaseModel):
     users: CountPair
     drawings: CountPair
@@ -338,3 +366,4 @@ class AdminMetrics(BaseModel):
     api: ApiMetrics
     model_version: str
     model_loaded: bool
+    training: TrainingMetrics

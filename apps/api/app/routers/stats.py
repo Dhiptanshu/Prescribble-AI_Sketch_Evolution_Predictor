@@ -16,5 +16,5 @@ router = APIRouter(prefix="/me", tags=["account"])
 
 @router.get("/stats", response_model=StatsOut)
 def my_stats(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    rows = db.execute(select(Drawing.created_at, Drawing.label, Drawing.ai_guess, Drawing.recognised_at).where(Drawing.user_id == user.id))
+    rows = db.execute(select(Drawing.created_at, Drawing.label, Drawing.ai_guess, Drawing.recognised_at).where(Drawing.user_id == user.id, Drawing.mode != "teach"))
     return compute_stats([Facts(*r) for r in rows], datetime.now(timezone.utc).date())

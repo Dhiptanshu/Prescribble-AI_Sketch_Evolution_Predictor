@@ -8,10 +8,20 @@ from sqlalchemy.orm import Session
 from app.db import get_db
 from app.deps import require_admin
 from app.models import ApiKey, ApiUsage, ChallengeAttempt, Drawing, User
-from app.schemas import AdminMetrics, ApiMetrics, ChallengeToday, CountPair, TopKey
+from app.classes import known_classes
+from app.schemas import AdminMetrics, ApiMetrics, ChallengeToday, CountPair, TopKey, TrainingMetrics
+from app.services import training_data
+from app.inference import reload_active
 from app.services.metering import daily_series
+from app.services.registry import active_version
 
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin)])
+
+
+def _training(request: Request, db: Session) -> TrainingMetrics:
+    s = training_data.summary(db, known_classes(request.app.state.settings, active_version(request.app.state.settings)))
+    return TrainingMetrics(ready=s["ready"], classes_covered=s["classes_covered"], classes_total=s["classes_total"], contributors=s["contributors"],
+                           by_input_type=s["by_input_type"])
 
 
 @router.get("/metrics", response_model=AdminMetrics)
@@ -50,6 +60,14 @@ def metrics(request: Request, db: Session = Depends(get_db)):
             daily=daily,
             top_keys=[TopKey(prefix=p, name=n, owner=o, requests_7d=int(r)) for p, n, o, r in top],
         ),
-        model_version=request.app.state.settings.model_version,
+        model_version=active_version(request.app.state.settings),
         model_loaded=request.app.state.scorer is not None,
+        training=_training(request, db),
     )
+
+
+@router.post("/model/reload")
+def reload_model(request: Request):
+    """After `python -m src.flywheel.registry promote`: start answering with the newly live version, no restart needed.
+    Days and rounds already in progress keep the model they started with."""
+    return {"active": reload_active(request)}
