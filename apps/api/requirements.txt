@@ -8,6 +8,4 @@ email-validator>=2.2,<3
 argon2-cffi>=23.1
 PyJWT>=2.10,<3
 python-multipart>=0.0.20
-# tests
-pytest>=8
-httpx>=0.28
+psycopg[binary]>=3.2,<4          # PostgreSQL driver for production (sqlite needs nothing)

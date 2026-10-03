@@ -1,0 +1,24 @@
+# docker compose -f deploy/docker-compose.yml --env-file deploy/.env up --build
+# Default: SQLite on a volume. For PostgreSQL:  docker compose --profile postgres ... up  and set DATABASE_URL in deploy/.env
+services:
+  app:
+    build: { context: .., dockerfile: deploy/Dockerfile }
+    ports: ["8100:8100"]
+    environment:
+      PRESCRIBBLE_SECRET_KEY: ${SECRET_KEY:?set SECRET_KEY (32+ random characters) in deploy/.env}
+      PRESCRIBBLE_DATABASE_URL: ${DATABASE_URL:-sqlite:////data/prescribble.db}
+      PRESCRIBBLE_COOKIE_SECURE: ${COOKIE_SECURE:-false}   # set true behind HTTPS
+    volumes: ["appdata:/data"]
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    profiles: ["postgres"]
+    environment:
+      POSTGRES_USER: prescribble
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}   # required when using --profile postgres (the container refuses to start without it)
+      POSTGRES_DB: prescribble
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U prescribble"], interval: 10s, retries: 5 }
+
+volumes: { appdata: {}, pgdata: {} }
