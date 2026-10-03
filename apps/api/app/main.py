@@ -16,7 +16,8 @@ from app.config import Settings, get_settings
 from app.db import Base, make_engine, make_session_factory
 from app.errors import install_error_handlers
 from app.ratelimit import SlidingWindowLimiter
-from app.routers import admin, auth, challenge, drawings, health, keys, predict, public, stats
+from app.services.room_hub import RoomHub
+from app.routers import admin, auth, challenge, drawings, health, keys, predict, public, rooms, stats
 
 API_PREFIX = "/api/v1"
 MAX_BODY_BYTES = 1_000_000      # API requests above this are refused before parsing (drawings are well under 100 KB)
@@ -31,6 +32,7 @@ def create_app(settings: Settings | None = None, clock: Callable[[], datetime] |
     @asynccontextmanager
     async def lifespan(_: FastAPI):
         yield
+        app.state.hub.shutdown()
         engine.dispose()
 
     app = FastAPI(title=settings.app_name, version="0.1.0", lifespan=lifespan,
@@ -42,6 +44,8 @@ def create_app(settings: Settings | None = None, clock: Callable[[], datetime] |
     app.state.write_limiter = SlidingWindowLimiter(settings.writes_per_minute)
     app.state.public_limiter = SlidingWindowLimiter(settings.public_reads_per_minute)
     app.state.api_limiter = SlidingWindowLimiter(settings.api_per_minute)
+    app.state.join_limiter = SlidingWindowLimiter(settings.joins_per_minute)
+    app.state.hub = RoomHub(app)
     app.state.clock = clock or (lambda: datetime.now(timezone.utc))
     app.state.scorer = None                      # loaded on first use (see routers/challenge.py)
     app.state.scorer_lock = threading.Lock()
@@ -81,6 +85,7 @@ def create_app(settings: Settings | None = None, clock: Callable[[], datetime] |
     app.include_router(challenge.router, prefix=API_PREFIX)
     app.include_router(keys.router, prefix=API_PREFIX)
     app.include_router(predict.router, prefix=API_PREFIX)
+    app.include_router(rooms.router, prefix=API_PREFIX)
     app.include_router(admin.router, prefix=API_PREFIX)
     app.include_router(public.router, prefix=API_PREFIX)
     if settings.web_dist:
