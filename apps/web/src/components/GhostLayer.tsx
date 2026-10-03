@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
-import { IMG, type Prediction } from "@prescribble/engine";
+import { IMG } from "@prescribble/engine/pipeline";
+import type { Prediction } from "@prescribble/engine";
 
 /**
  * The model's own prediction of how the drawing will end, drawn in the accent colour.

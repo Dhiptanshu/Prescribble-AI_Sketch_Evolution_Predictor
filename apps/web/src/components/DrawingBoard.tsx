@@ -1,5 +1,6 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
-import { FRAME, type Stroke } from "@prescribble/engine";
+import { FRAME } from "@prescribble/engine/pipeline";
+import type { Stroke } from "@prescribble/engine";
 
 export type BoardPhase = "start" | "move" | "end" | "clear" | "undo" | "set";
 

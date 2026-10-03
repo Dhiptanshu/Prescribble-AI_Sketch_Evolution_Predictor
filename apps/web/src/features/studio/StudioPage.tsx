@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState, type ReactNode } from "react";
-import { inkLength, type Stroke } from "@prescribble/engine";
+import { inkLength } from "@prescribble/engine/pipeline";
+import type { Stroke } from "@prescribble/engine";
 import { ConfidenceChart } from "../../components/ConfidenceChart";
 import { DrawingBoard, type BoardHandle, type BoardPhase } from "../../components/DrawingBoard";
 import { GhostLayer } from "../../components/GhostLayer";

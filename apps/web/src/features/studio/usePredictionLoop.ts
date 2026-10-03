@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react";
-import { inkLength, type Prediction, type SketchModel, type Stroke } from "@prescribble/engine";
+import { inkLength } from "@prescribble/engine/pipeline";
+import type { Prediction, SketchModel, Stroke } from "@prescribble/engine";
 
 export interface HistoryPoint { ink: number; probs: Float32Array; order: number[] }
 

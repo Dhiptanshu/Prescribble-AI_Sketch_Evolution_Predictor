@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { cutStrokes, type Stroke } from "@prescribble/engine";
+import { cutStrokes } from "@prescribble/engine/pipeline";
+import type { Stroke } from "@prescribble/engine";
 import { DrawingBoard, type BoardHandle } from "../../components/DrawingBoard";
 import { GhostLayer } from "../../components/GhostLayer";
 import { GuessPanel } from "../../components/GuessPanel";
