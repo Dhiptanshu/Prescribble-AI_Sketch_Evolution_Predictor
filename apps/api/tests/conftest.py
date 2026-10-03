@@ -1,9 +1,12 @@
+import json
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 
 from app.config import Settings
+from app.inference import Scorer
 from app.main import create_app
 
 PASSWORD = "correct horse battery"
@@ -15,9 +18,51 @@ def make_settings(**overrides) -> Settings:
     return Settings(**{**base, **overrides})
 
 
+T0 = datetime(2026, 10, 3, 12, 0, tzinfo=timezone.utc)
+SAMPLES = json.loads((REPO_MODELS / "v1" / "samples.json").read_text(encoding="utf-8"))      # real held-out QuickDraw sketches
+
+
+def strokes_of(label):
+    return [s["strokes"] for s in SAMPLES if s["label"] == label]
+
+
+class Clock:
+    """A controllable UTC clock so tests can move between days."""
+
+    def __init__(self, start):
+        self.now = start
+
+    def __call__(self):
+        return self.now
+
+    def advance(self, **kw):
+        self.now += timedelta(**kw)
+
+
+@pytest.fixture(scope="session")
+def scorer():
+    return Scorer(REPO_MODELS, "v1")
+
+
 @pytest.fixture
-def client():
-    with TestClient(create_app(make_settings())) as c:
+def clock():
+    return Clock(T0)
+
+
+def build_app(clock, scorer, **overrides):
+    application = create_app(make_settings(**overrides), clock=clock)
+    application.state.scorer = scorer               # share the loaded model between tests
+    return application
+
+
+@pytest.fixture
+def app(clock, scorer):
+    return build_app(clock, scorer)
+
+
+@pytest.fixture
+def client(app):
+    with TestClient(app) as c:
         yield c
 
 

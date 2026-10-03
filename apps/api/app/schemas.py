@@ -238,3 +238,93 @@ class ChallengeStats(BaseModel):
     average_best: float | None
     streak: Streak
     history: list[ChallengeDay]
+
+
+# ---------- developer platform: API keys, public predict, admin ----------
+class KeyCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=60)
+
+    _name = field_validator("name")(_clean_name)
+
+
+class KeyOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+    prefix: str
+    daily_limit: int
+    used_today: int = 0
+    created_at: datetime
+    last_used_at: datetime | None
+    revoked_at: datetime | None
+
+
+class KeyCreated(KeyOut):
+    key: str                           # the only time the full key is ever returned
+
+
+class UsageDay(BaseModel):
+    day: date
+    requests: int
+    errors: int
+    avg_ms: float | None
+
+
+class PredictIn(BaseModel):
+    strokes: list[Annotated[list[Point], Field(min_length=1)]] = Field(min_length=1)
+    top_k: int = Field(default=5, ge=1, le=10)
+
+
+class Guess(BaseModel):
+    label: str
+    probability: float
+
+
+class PredictOut(BaseModel):
+    model: str
+    ink: float
+    predictions: list[Guess]
+    inference_ms: float
+
+
+class ModelInfo(BaseModel):
+    version: str
+    classes: list[str]
+
+
+class CountPair(BaseModel):
+    total: int
+    last_7_days: int
+
+
+class ChallengeToday(BaseModel):
+    players: int
+    attempts: int
+    flagged: int
+
+
+class TopKey(BaseModel):
+    prefix: str
+    name: str
+    owner: str
+    requests_7d: int
+
+
+class ApiMetrics(BaseModel):
+    active_keys: int
+    requests_today: int
+    requests_7d: int
+    errors_7d: int
+    avg_ms_7d: float | None
+    daily: list[UsageDay]
+    top_keys: list[TopKey]
+
+
+class AdminMetrics(BaseModel):
+    users: CountPair
+    drawings: CountPair
+    challenge_today: ChallengeToday
+    api: ApiMetrics
+    model_version: str
+    model_loaded: bool

@@ -38,6 +38,9 @@ class Settings(BaseSettings):
     attempts_per_day: int = 3                 # scored attempts per user per UTC day
     min_attempt_ms: int = 400                 # faster than this is not a human drawing (attempt is kept but not counted)
     max_ink_per_ms: float = 8.0               # frame pixels per millisecond; above this the input looks automated
+    api_daily_limit: int = 1000               # predictions per API key per UTC day (stored on each key when it is created)
+    api_per_minute: int = 60                  # burst limit per API key
+    max_keys_per_user: int = 5                # active API keys per account
 
     @model_validator(mode="after")
     def _finalise(self):

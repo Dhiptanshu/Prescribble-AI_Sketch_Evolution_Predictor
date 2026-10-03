@@ -6,11 +6,10 @@ from sqlalchemy import and_, func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.classes import models_dir
 from app.db import get_db
 from app.deps import get_current_user, get_current_user_optional, write_guard
 from app.errors import ApiError
-from app.inference import Scorer
+from app.inference import get_scorer
 from app.models import ChallengeAttempt, DailyChallenge, User
 from app.schemas import (AttemptIn, AttemptOut, AttemptSummary, ChallengeDay, ChallengeStats, LeaderboardEntry, LeaderboardOut,
                          MyDay, Streak, TimelineStep, TodayOut)
@@ -24,20 +23,6 @@ router = APIRouter(prefix="/challenge", tags=["challenge"])
 
 def _now(request: Request) -> datetime:
     return request.app.state.clock()
-
-
-def get_scorer(request: Request) -> Scorer:
-    """The model is loaded on first use and then shared by every request."""
-    state = request.app.state
-    if state.scorer is None:
-        with state.scorer_lock:
-            if state.scorer is None:
-                s = state.settings
-                folder = models_dir(s)
-                if folder is None or not (folder / s.model_version / "sketch.onnx").is_file():
-                    raise ApiError(503, "model_unavailable", "The scoring model is not available on this server.")
-                state.scorer = Scorer(folder, s.model_version, s.ml_root)
-    return state.scorer
 
 
 def _ensure_day(db: Session, request: Request, day: date) -> DailyChallenge:

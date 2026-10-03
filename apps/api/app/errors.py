@@ -24,7 +24,10 @@ def _body(code: str, message: str, details=None) -> dict:
 def install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(ApiError)
     async def _api_error(_: Request, exc: ApiError):
-        return JSONResponse(_body(exc.code, exc.message, exc.details), status_code=exc.status)
+        headers = {}
+        if isinstance(exc.details, dict) and "retry_after" in exc.details:
+            headers["Retry-After"] = str(exc.details["retry_after"])       # tells well-behaved clients when to come back
+        return JSONResponse(_body(exc.code, exc.message, exc.details), status_code=exc.status, headers=headers)
 
     @app.exception_handler(RequestValidationError)
     async def _validation(_: Request, exc: RequestValidationError):

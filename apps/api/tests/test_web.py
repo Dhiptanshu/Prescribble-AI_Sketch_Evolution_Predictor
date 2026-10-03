@@ -43,6 +43,16 @@ def test_module_scripts_and_wasm_get_browser_safe_media_types(web):
     assert web.get("/ort/runtime.wasm").headers["content-type"] == "application/wasm"
 
 
+def test_widget_assets_can_be_loaded_from_other_websites(web, tmp_path):
+    """The embeddable widget pulls its script, model and WebAssembly runtime from other people's pages, so those need CORS."""
+    (web.app.state.settings.web_dist / "widget").mkdir()
+    (web.app.state.settings.web_dist / "widget" / "prescribble-widget.js").write_text("/* widget */")
+    for path in ("/widget/prescribble-widget.js", "/models/v1/meta.json", "/ort/loader.mjs", "/ort/runtime.wasm"):
+        r = web.get(path, headers={"Origin": "https://some-blog.example"})
+        assert r.status_code == 200 and r.headers["access-control-allow-origin"] == "*" and r.headers["cross-origin-resource-policy"] == "cross-origin", path
+    assert "access-control-allow-origin" not in web.get("/assets/app-abc123.js").headers           # the app's own files stay same-origin
+
+
 def test_missing_asset_is_a_real_404_not_index(web):
     r = web.get("/assets/missing.js")
     assert r.status_code == 404 and r.json()["error"]["code"] == "not_found"

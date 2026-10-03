@@ -25,6 +25,7 @@ class User(Base):
 
     drawings: Mapped[list["Drawing"]] = relationship(back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
     attempts: Mapped[list["ChallengeAttempt"]] = relationship(back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
+    api_keys: Mapped[list["ApiKey"]] = relationship(back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
 
 
 class Drawing(Base):
@@ -89,3 +90,36 @@ class ChallengeAttempt(Base):
     duration_ms: Mapped[int | None] = mapped_column(Integer)
 
     user: Mapped[User] = relationship(back_populates="attempts")
+
+
+class ApiKey(Base):
+    """A secret key for the REST API. Only a SHA-256 hash is stored; the key itself is shown once, at creation."""
+
+    __tablename__ = "api_keys"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    name: Mapped[str] = mapped_column(String(60))
+    prefix: Mapped[str] = mapped_column(String(16))                    # first characters, so people can tell their keys apart
+    key_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    daily_limit: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    user: Mapped[User] = relationship(back_populates="api_keys")
+    usage: Mapped[list["ApiUsage"]] = relationship(cascade="all, delete-orphan", passive_deletes=True)
+
+
+class ApiUsage(Base):
+    """Request counters per key per UTC day (real metering: nothing is sampled or estimated)."""
+
+    __tablename__ = "api_usage"
+    __table_args__ = (UniqueConstraint("key_id", "day"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    key_id: Mapped[int] = mapped_column(ForeignKey("api_keys.id", ondelete="CASCADE"), index=True)
+    day: Mapped[date] = mapped_column(Date)
+    requests: Mapped[int] = mapped_column(Integer, default=0)
+    errors: Mapped[int] = mapped_column(Integer, default=0)
+    total_ms: Mapped[float] = mapped_column(Float, default=0.0)      # summed model time, so avg = total_ms / requests

@@ -10,7 +10,10 @@ from pathlib import Path
 
 import numpy as np
 import onnxruntime as ort
+from fastapi import Request
 
+from app.classes import models_dir
+from app.errors import ApiError
 from app.services.scoring import FRACTIONS, Step
 
 _ROOT_CANDIDATES = (Path(__file__).resolve().parents[3], Path("/app"))
@@ -56,6 +59,12 @@ class Scorer:
         })
         return out[0][0]
 
+    def predict(self, strokes, top_k: int = 5) -> list[tuple[str, float]]:
+        """The model's ranked guesses for a drawing as it stands: [(label, probability), ...], best first."""
+        probs = self.probabilities(_as_array(strokes), 1.0)
+        order = np.argsort(-probs)[:top_k]
+        return [(self.classes[int(i)], float(probs[i])) for i in order]
+
     def timeline(self, strokes, target: str) -> list[Step]:
         raw = _as_array(strokes)
         target_idx = self.classes.index(target)
@@ -65,3 +74,17 @@ class Scorer:
             top = int(np.argmax(probs))
             steps.append(Step(f, self.classes[top], float(probs[top]), float(probs[target_idx])))
         return steps          # the last step is the finished drawing, so it also gives the final guess
+
+
+def get_scorer(request: Request) -> Scorer:
+    """The model is loaded on first use and then shared by every request (daily challenge and the public API)."""
+    state = request.app.state
+    if state.scorer is None:
+        with state.scorer_lock:
+            if state.scorer is None:
+                settings = state.settings
+                folder = models_dir(settings)
+                if folder is None or not (folder / settings.model_version / "sketch.onnx").is_file():
+                    raise ApiError(503, "model_unavailable", "The scoring model is not available on this server.")
+                state.scorer = Scorer(folder, settings.model_version, settings.ml_root)
+    return state.scorer

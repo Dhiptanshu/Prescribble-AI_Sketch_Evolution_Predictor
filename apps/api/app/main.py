@@ -16,7 +16,7 @@ from app.config import Settings, get_settings
 from app.db import Base, make_engine, make_session_factory
 from app.errors import install_error_handlers
 from app.ratelimit import SlidingWindowLimiter
-from app.routers import auth, challenge, drawings, health, public, stats
+from app.routers import admin, auth, challenge, drawings, health, keys, predict, public, stats
 
 API_PREFIX = "/api/v1"
 MAX_BODY_BYTES = 1_000_000      # API requests above this are refused before parsing (drawings are well under 100 KB)
@@ -41,6 +41,7 @@ def create_app(settings: Settings | None = None, clock: Callable[[], datetime] |
     app.state.auth_limiter = SlidingWindowLimiter(settings.auth_attempts_per_minute)
     app.state.write_limiter = SlidingWindowLimiter(settings.writes_per_minute)
     app.state.public_limiter = SlidingWindowLimiter(settings.public_reads_per_minute)
+    app.state.api_limiter = SlidingWindowLimiter(settings.api_per_minute)
     app.state.clock = clock or (lambda: datetime.now(timezone.utc))
     app.state.scorer = None                      # loaded on first use (see routers/challenge.py)
     app.state.scorer_lock = threading.Lock()
@@ -78,6 +79,9 @@ def create_app(settings: Settings | None = None, clock: Callable[[], datetime] |
     app.include_router(stats.router, prefix=API_PREFIX)
     app.include_router(drawings.router, prefix=API_PREFIX)
     app.include_router(challenge.router, prefix=API_PREFIX)
+    app.include_router(keys.router, prefix=API_PREFIX)
+    app.include_router(predict.router, prefix=API_PREFIX)
+    app.include_router(admin.router, prefix=API_PREFIX)
     app.include_router(public.router, prefix=API_PREFIX)
     if settings.web_dist:
         from app.web import install_web
