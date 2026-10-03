@@ -13,16 +13,29 @@ import sys
 import time
 from pathlib import Path
 
-WORK = Path("/kaggle/working/proj")
+WORK = Path("/tmp/proj")                      # not under /kaggle/working: the 1 GB of raw data must not become kernel output
 OUT = Path("/kaggle/working/out")
 ENV = {**os.environ, "PRESCRIBBLE_CLASS_SET": "v2"}
 EPOCHS, EPOCH_SIZE = "25", "150000"
 
 
+LOG = OUT / "log.txt"
+
+
 def run(*args) -> int:
+    """Run one step, echo its output to the kernel log AND keep a copy in out/log.txt (so a failure can be read afterwards)."""
     t0 = time.time()
     print(">>", " ".join(args), flush=True)
-    code = subprocess.run([sys.executable, *args], cwd=WORK, env=ENV).returncode
+    OUT.mkdir(parents=True, exist_ok=True)
+    with open(LOG, "a", encoding="utf-8") as log:
+        log.write(f">> {' '.join(args)}
+")
+        proc = subprocess.Popen([sys.executable, *args], cwd=WORK, env=ENV, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
+        for line in proc.stdout:
+            print(line, end="", flush=True)
+            log.write(line)
+            log.flush()
+        code = proc.wait()
     print(f"<< exit {code} in {time.time() - t0:.0f}s", flush=True)
     return code
 
@@ -87,4 +100,11 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except BaseException:                                   # leave the reason in the output, then fail loudly
+        import traceback
+
+        OUT.mkdir(parents=True, exist_ok=True)
+        (OUT / "error.txt").write_text(traceback.format_exc(), encoding="utf-8")
+        raise
