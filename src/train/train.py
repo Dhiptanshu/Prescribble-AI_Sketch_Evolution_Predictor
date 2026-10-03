@@ -52,16 +52,26 @@ def main():
     ap.add_argument("--workers", type=int, default=6)
     ap.add_argument("--threads", type=int, default=8)
     ap.add_argument("--ghost-weight", type=float, default=1.0)
+    ap.add_argument("--init", help="start from this checkpoint (fine-tuning) instead of random weights")
+    ap.add_argument("--user-file", help="export of consented user drawings to mix into the training stream (src/flywheel/mix.py)")
+    ap.add_argument("--user-share", type=float, default=0.25, help="fraction of the stream that is user drawings")
+    ap.add_argument("--user-input-type", help="only user drawings made with this pointer (mouse, touch, pen)")
+    ap.add_argument("--out-name", help="run folder name under the class set's runs (default: the model name)")
     ap.add_argument("--smoke", action="store_true", help="tiny run to check the pipeline")
     a = ap.parse_args()
 
     torch.set_num_threads(a.threads)
     torch.manual_seed(0)
-    out = SET_RUNS / a.model
+    out = SET_RUNS / (a.out_name or a.model)
     out.mkdir(parents=True, exist_ok=True)
 
     splits = load_splits()
     sk, lb = splits["train"]
+    if a.user_file:
+        from src.flywheel.mix import mix_user_drawings
+        n0 = len(sk)
+        sk, lb = mix_user_drawings(sk, lb, a.user_file, a.user_share, a.user_input_type)
+        print(f"mixed in {len(sk) - n0} user-drawing draws ({a.user_share:.0%} of the stream) on top of {n0} QuickDraw sketches", flush=True)
     if a.smoke:
         a.epochs, a.epoch_size = 1, 2048
     train_dl = DataLoader(PartialSketchTrain(sk, lb, a.epoch_size), batch_size=a.bs, shuffle=False,
@@ -72,6 +82,9 @@ def main():
 
     dev = "cuda" if torch.cuda.is_available() else "cpu"
     model = build(a.model).to(dev)
+    if a.init:
+        model.load_state_dict(torch.load(a.init, map_location=dev))
+        print("initialised from", a.init, flush=True)
     print("device:", dev, flush=True)
     print(f"{a.model}: {sum(p.numel() for p in model.parameters()) / 1e6:.2f}M params", flush=True)
     opt = torch.optim.AdamW(model.parameters(), lr=a.lr, weight_decay=1e-4)

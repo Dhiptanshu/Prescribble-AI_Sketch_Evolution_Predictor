@@ -34,10 +34,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", required=True)
     ap.add_argument("--version", default="v1")
+    ap.add_argument("--run", help="run folder holding best.pt and results.json (default: the model name); use for fine-tuned runs")
     a = ap.parse_args()
 
     net = build(a.model)
-    net.load_state_dict(torch.load(SET_RUNS / a.model / "best.pt", map_location="cpu"))
+    net.load_state_dict(torch.load(SET_RUNS / (a.run or a.model) / "best.pt", map_location="cpu"))
     net.eval()
     wrap = Wrapper(net).eval()
     img = torch.rand(1, 1, IMG, IMG)
@@ -63,7 +64,7 @@ def main():
     size = path.stat().st_size / 1e6
     print(f"latency {ms:.1f} ms/prediction (CPU), model {size:.1f} MB")
 
-    results = json.load(open(SET_RUNS / a.model / "results.json"))
+    results = json.load(open(SET_RUNS / (a.run or a.model) / "results.json"))
     json.dump({"model": a.model, "version": a.version, "class_set": CLASS_SET, "classes": CLASSES, "img": IMG, "max_pts": MAX_PTS, "seq_feats": SEQ_FEATS,
                "test_results": results, "latency_ms": ms, "size_mb": size},
               open(OUT / "meta.json", "w"), indent=2)
