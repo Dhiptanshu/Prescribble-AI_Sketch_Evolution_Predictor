@@ -7,5 +7,5 @@ export default defineConfig({
   base: "/",
   server: { port: 5173, proxy: { "/api": "http://localhost:8100", "/healthz": "http://localhost:8100" } },
   build: { target: "es2022", chunkSizeWarningLimit: 900 },
-  test: { environment: "jsdom", globals: true, include: ["src/**/*.test.{ts,tsx}"] },
+  test: { environment: "jsdom", globals: true, setupFiles: ["src/test/setup.ts"], include: ["src/**/*.test.{ts,tsx}"] },
 });
