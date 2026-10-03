@@ -18,6 +18,9 @@ RUN pip install -r requirements.txt
 COPY apps/api/ ./
 COPY --from=web /repo/apps/web/dist /app/web
 COPY models/ /app/models/
+# the training pipeline (stroke cutting, rasteriser, sequence features): the server scores with the very code the model was trained with
+COPY src/__init__.py src/common.py /app/src/
+COPY src/data/__init__.py src/data/partial.py /app/src/data/
 RUN useradd --system --uid 10001 prescribble && mkdir /data && chown prescribble /data
 USER prescribble
 ENV PRESCRIBBLE_ENV=prod \
