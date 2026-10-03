@@ -5,7 +5,7 @@ Prerequisites: Python 3.11+, Node 20+ (npm), optionally Docker.
 ## First run
 ```bash
 npm install                                   # web app + engine (npm workspaces)
-pip install -r apps/api/requirements.txt      # API
+pip install -r apps/api/requirements-dev.txt  # API + test tools (production needs only requirements.txt)
 ```
 
 ## Run the full stack (two terminals)
@@ -24,6 +24,7 @@ The web app also works **without** the API (offline mode): the Studio runs fully
 cd apps/api && python -m pytest -q            # API: auth, validation, rate limits, migrations up/down
 npm test                                      # engine golden tests (vs the Python pipeline) + web unit tests
 npm run typecheck
+npm run lint                                  # ESLint (typescript-eslint + react-hooks)
 ```
 Regenerate the engine's golden fixtures after changing the Python pipeline: `python scripts/make_engine_fixtures.py`.
 
@@ -32,6 +33,29 @@ Regenerate the engine's golden fixtures after changing the Python pipeline: `pyt
 npm run build:web
 python3 apps/web/serve.py                     # http://localhost:8765, SPA fallback, no backend (offline mode)
 ```
+
+## Single-origin mode (API serves the built web app)
+```bash
+npm run build:web
+cd apps/api
+PRESCRIBBLE_WEB_DIST=../web/dist PRESCRIBBLE_DATABASE_URL=sqlite:///./prescribble.db python -m uvicorn app.main:create_app --factory --port 8100
+```
+One process, one origin: `/` is the app, `/api/*` the API, clean URLs work after a refresh. Fingerprinted assets and versioned models are cached
+immutably; fixed-name files (`ort/`, `index.html`) are revalidated.
+
+## Docker
+```bash
+cp deploy/.env.example deploy/.env            # set SECRET_KEY (and COOKIE_SECURE=true behind HTTPS)
+docker compose -f deploy/docker-compose.yml --env-file deploy/.env up --build
+# optional PostgreSQL:  add  --profile postgres  and set POSTGRES_PASSWORD + DATABASE_URL in deploy/.env
+```
+The compose file validates (`docker compose config`); the image build itself has not been run on this machine yet (Docker Desktop was not running).
+
+## Lab bundle for the new web app
+```bash
+npm run build:web && python scripts/make_web_bundle.py    # dist/prescribble-web.zip (~20 MB)
+```
+Unzip on any machine with Python 3 and run `bash run.sh` (or `run.bat`). No backend: the app runs in offline mode (Studio fully working).
 
 ## Database migrations
 ```bash

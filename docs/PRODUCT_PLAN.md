@@ -69,7 +69,16 @@ Score = `round((1 - fraction) * 100)`; a drawing the AI never gets scores 0. Pla
 - **Web (React + TS + Vite):** landing page with a live hero demo (real held-out sketch through the real model, stats read from the model's measured results), Studio (free draw, AI challenge, real-sketch replay, ghost, confidence timeline), register / login / sign-out, light and dark themes, offline mode when no backend is reachable. Production build 89 kB gzipped; type-check clean; 6 unit tests pass.
 - Checked by hand in a real browser: Studio predictions identical to the POC, registration, session persistence across reloads, sign-out.
 
-**Left in Phase 1:** Dockerfile and compose, a `/auth/session` endpoint (removes the harmless 401 console line for logged-out visitors), ESLint, a Playwright smoke test, component tests, and making the lab bundle from the new web app so the legacy `demo/` can be retired.
+**Phase 1 completed since the first pause**
+- `/auth/session` (always 200) replaces the 401 probe, so logged-out visitors see no console error.
+- The API can serve the built web app itself (SPA fallback, safe paths, explicit media types, correct cache policy). **29 API tests pass.**
+- Found and fixed in real-browser testing: the host's mime registry served `.mjs` as `text/plain` (browsers refuse that for module scripts), and an `immutable` cache header made the bad response stick. Fixed-name files are now revalidated; tests cover both.
+- Engine `pipeline` subpath export so pure helpers never pull in the ONNX runtime (this made the hooks testable). **13 web tests pass** (API client, GuessPanel, prediction-loop scheduling) plus 6 engine golden tests.
+- ESLint (typescript-eslint, react-hooks): clean. Type-check: clean.
+- Dockerfile (multi-stage, non-root, healthcheck) and compose (SQLite volume, optional Postgres profile). Compose validated; **the image has not been built yet** because Docker Desktop was not running.
+- Lab bundle from the new web app (`scripts/make_web_bundle.py`, ~20 MB). Verified both ways in a real browser: API single-origin and the static server with no backend (offline mode).
+
+**Left over:** build the Docker image once Docker Desktop is running, a Playwright smoke test, retire the legacy `demo/` after one lab rehearsal.
 
 **Next:** Phase 2 (save drawings, gallery, stats, share links, replay export).
 
