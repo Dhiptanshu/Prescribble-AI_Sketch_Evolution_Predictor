@@ -22,7 +22,7 @@ export function StudioPage() {
   const engine = useEngine();
   const model = engine.status === "ready" ? engine.model : null;
   const loop = usePredictionLoop(model);
-  const { boardRef, meta, revision, onChange, getStrokes, getDurationMs } = useDrawSession(loop);
+  const { boardRef, meta, revision, onChange, getStrokes, getDurationMs, getInputType } = useDrawSession(loop);
 
   const [mode, setMode] = useState<Mode>("free");
   const [ghost, setGhost] = useState(true);
@@ -88,7 +88,7 @@ export function StudioPage() {
         {mode !== "replay" && model && (
           <SavePanel
             mode={mode} classes={model.classes} last={loop.last} history={loop.history} revision={revision}
-            getStrokes={getStrokes} getDurationMs={getDurationMs}
+            getStrokes={getStrokes} getDurationMs={getDurationMs} getInputType={getInputType}
           />
         )}
         {mode === "challenge" && model && <ChallengeMode {...ctx} />}

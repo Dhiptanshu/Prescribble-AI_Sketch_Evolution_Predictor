@@ -36,6 +36,7 @@ export function Layout() {
           <NavLink to="/developers">Developers</NavLink>
           {user?.is_admin && <NavLink to="/admin">Admin</NavLink>}
           {user && <NavLink to="/gallery">Gallery</NavLink>}
+          {user && <NavLink to="/teach">Teach the AI</NavLink>}
           {user && <NavLink to="/stats">Stats</NavLink>}
         </nav>
         <div className="nav-right">

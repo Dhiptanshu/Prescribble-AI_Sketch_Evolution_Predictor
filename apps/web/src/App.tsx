@@ -17,6 +17,7 @@ import { SettingsPage } from "./features/settings/SettingsPage";
 import { SharedPage } from "./features/share/SharedPage";
 import { StatsPage } from "./features/stats/StatsPage";
 import { StudioPage } from "./features/studio/StudioPage";
+import { TeachPage } from "./features/teach/TeachPage";
 import { AuthProvider } from "./lib/auth";
 import { EngineProvider } from "./lib/engine";
 
@@ -39,6 +40,7 @@ export function App() {
                 <Route path="gallery" element={<RequireAuth><GalleryPage /></RequireAuth>} />
                 <Route path="gallery/:id" element={<RequireAuth><DrawingPage /></RequireAuth>} />
                 <Route path="stats" element={<RequireAuth><StatsPage /></RequireAuth>} />
+                <Route path="teach" element={<RequireAuth><TeachPage /></RequireAuth>} />
                 <Route path="challenge" element={<ChallengePage />} />
                 <Route path="classroom" element={<RequireAuth><ClassroomsPage /></RequireAuth>} />
                 <Route path="classroom/:id" element={<RequireAuth><TeacherRoomPage /></RequireAuth>} />

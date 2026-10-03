@@ -10,7 +10,9 @@ export interface Drawing {
   ai_guess: string;
   ai_confidence: number;
   recognised_at: number | null;
-  mode: "free" | "challenge";
+  mode: "free" | "challenge" | "teach";
+  label_confirmed: boolean;
+  input_type: "mouse" | "touch" | "pen" | null;
   model_version: string;
   strokes: Stroke[];
   n_strokes: number;
@@ -25,9 +27,11 @@ export interface DrawingInput {
   ai_guess: string;
   ai_confidence: number;
   recognised_at: number | null;
-  mode: "free" | "challenge";
+  mode: "free" | "challenge" | "teach";
   duration_ms: number | null;
   model_version: string;
+  label_confirmed?: boolean;
+  input_type?: "mouse" | "touch" | "pen" | null;
 }
 
 interface Page { items: Drawing[]; next_before: number | null }

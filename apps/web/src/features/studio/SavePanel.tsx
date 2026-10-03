@@ -5,7 +5,7 @@ import type { Prediction, Stroke } from "@prescribble/engine";
 import { ApiError } from "../../lib/api";
 import { useAuth } from "../../lib/auth";
 import { useDrawingActions, type Drawing } from "../../lib/drawings";
-import { MODEL_VERSION } from "../../lib/engine";
+import { useEngine } from "../../lib/engine";
 import { recognisedAt } from "../../lib/recognition";
 import type { HistoryPoint } from "./usePredictionLoop";
 
@@ -16,18 +16,22 @@ interface Props {
   history: HistoryPoint[];
   getStrokes: () => Stroke[];
   getDurationMs: () => number | null;
+  getInputType?: () => "mouse" | "touch" | "pen" | null;
   /** Changes whenever the drawing changes, so a "saved" confirmation never outlives the drawing it refers to. */
   revision: number;
 }
 
 /** Save the current drawing to the signed-in user's gallery, with a label and how early the AI got it. */
-export function SavePanel({ mode, classes, last, history, getStrokes, getDurationMs, revision }: Props) {
+export function SavePanel({ mode, classes, last, history, getStrokes, getDurationMs, getInputType, revision }: Props) {
   const { user, backend } = useAuth();
   const { save } = useDrawingActions();
+  const engine = useEngine();
+  const version = engine.status === "ready" ? engine.version : null;
   const [chosen, setChosen] = useState<string | undefined>();       // undefined = untouched: follow the AI's guess; "" = not sure
   const [saved, setSaved] = useState<Drawing | null>(null);
+  const [checked, setChecked] = useState(false);                     // the person says the label is right (never implied by the AI's guess)
 
-  useEffect(() => { setSaved(null); setChosen(undefined); save.reset(); }, [revision]);   // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { setSaved(null); setChosen(undefined); setChecked(false); save.reset(); }, [revision]);   // eslint-disable-line react-hooks/exhaustive-deps
 
   if (backend !== "online") return null;
   const top = last?.top5[0];
@@ -50,13 +54,14 @@ export function SavePanel({ mode, classes, last, history, getStrokes, getDuratio
 
   function onSave() {
     const strokes = getStrokes();
-    if (!top || !strokes.length) return;
+    if (!top || !strokes.length || !version) return;
     const idx = label ? classes.indexOf(label) : -1;
     save.mutate(
       {
         strokes, label: label || null, ai_guess: top.name, ai_confidence: top.p,
         recognised_at: label ? recognisedAt(history, idx, inkLength(strokes)) : null,
-        mode, duration_ms: getDurationMs(), model_version: MODEL_VERSION,
+        mode, duration_ms: getDurationMs(), model_version: version, input_type: getInputType?.() ?? null,
+        label_confirmed: !!label && (chosen !== undefined || checked),
       },
       { onSuccess: setSaved },
     );
@@ -73,11 +78,13 @@ export function SavePanel({ mode, classes, last, history, getStrokes, getDuratio
         <>
           <div className="field">
             <label htmlFor="save-label">What did you draw?</label>
-            <select id="save-label" className="input" value={label} disabled={!top} onChange={(e) => setChosen(e.target.value)}>
+            <select id="save-label" className="input" value={label} disabled={!top} onChange={(e) => { setChosen(e.target.value); setChecked(true); }}>
               <option value="">Not sure</option>
               {classes.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
+          <label className="check"><input type="checkbox" checked={!!label && (chosen !== undefined || checked)} disabled={!label} onChange={(e) => setChecked(e.target.checked)} /> I checked: this label is right</label>
+          <p className="meta">Only labels you confirm can help train the model, and only if you allow that in <Link to="/settings">Settings</Link>.</p>
           {error && <div className="toast bad" role="alert" style={{ marginTop: 10 }}>{error}</div>}
           <button className="btn primary" style={{ marginTop: 12 }} onClick={onSave} disabled={!top || save.isPending}>
             {save.isPending ? "Saving…" : "Save drawing"}

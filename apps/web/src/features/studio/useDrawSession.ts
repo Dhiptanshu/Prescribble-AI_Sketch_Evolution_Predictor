@@ -32,5 +32,7 @@ export function useDrawSession(loop: ReturnType<typeof usePredictionLoop>) {
     return start != null && end != null ? Math.round(end - start) : null;
   }, []);
 
-  return { boardRef, meta, revision, onChange, getStrokes, getDurationMs };
+  const getInputType = useCallback(() => boardRef.current?.inputType() ?? null, []);
+
+  return { boardRef, meta, revision, onChange, getStrokes, getDurationMs, getInputType };
 }

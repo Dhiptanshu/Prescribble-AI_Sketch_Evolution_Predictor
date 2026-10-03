@@ -45,6 +45,8 @@ function Dashboard() {
         <Tile value={String(m.drawings.total)} label="saved drawings" hint={`${m.drawings.last_7_days} in the last 7 days`} />
         <Tile value={String(m.challenge_today.players)} label="challenge players today" hint={`${m.challenge_today.attempts} attempts, ${m.challenge_today.flagged} flagged`} />
         <Tile value={String(m.api.active_keys)} label="active API keys" hint={`${m.api.requests_today} requests today`} />
+        <Tile value={String(m.training.ready)} label="training-ready drawings"
+              hint={`${m.training.classes_covered} of ${m.training.classes_total ?? "?"} classes, ${m.training.contributors} contributor${m.training.contributors === 1 ? "" : "s"}${Object.keys(m.training.by_input_type).length ? ", " + Object.entries(m.training.by_input_type).map(([k, v]) => `${v} ${k}`).join(", ") : ""}`} />
       </div>
       <div className="stats-grid">
         <section className="card">

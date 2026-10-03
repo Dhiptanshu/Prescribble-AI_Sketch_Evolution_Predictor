@@ -4,8 +4,12 @@ import type { Stroke } from "@prescribble/engine";
 
 export type BoardPhase = "start" | "move" | "end" | "clear" | "undo" | "set";
 
+export type InputType = "mouse" | "touch" | "pen";
+
 export interface BoardHandle {
   strokes(): Stroke[];
+  /** The pointer that drew the first stroke of the current drawing (null when the board is empty). */
+  inputType(): InputType | null;
   set(strokes: Stroke[]): void;
   clear(): void;
   undo(): void;
@@ -25,6 +29,7 @@ export const DrawingBoard = forwardRef<BoardHandle, Props>(function DrawingBoard
   const canvas = useRef<HTMLCanvasElement>(null);
   const strokes = useRef<Stroke[]>([]);
   const drawing = useRef(false);
+  const input = useRef<InputType | null>(null);
   const cb = useRef(onChange);
   cb.current = onChange;
   const lockedRef = useRef(!!locked);
@@ -52,6 +57,7 @@ export const DrawingBoard = forwardRef<BoardHandle, Props>(function DrawingBoard
 
   useImperativeHandle(ref, () => ({
     strokes: () => strokes.current,
+    inputType: () => (strokes.current.length ? input.current : null),
     set: (s) => { strokes.current = s; render(); emit("set"); },
     clear: () => { strokes.current = []; render(); emit("clear"); },
     undo: () => { strokes.current = strokes.current.slice(0, -1); render(); emit("undo"); },
@@ -89,6 +95,7 @@ export const DrawingBoard = forwardRef<BoardHandle, Props>(function DrawingBoard
           if (lockedRef.current) return;
           e.currentTarget.setPointerCapture(e.pointerId);
           drawing.current = true;
+          if (!strokes.current.length) input.current = e.pointerType === "mouse" || e.pointerType === "touch" || e.pointerType === "pen" ? e.pointerType : null;
           strokes.current = [...strokes.current, [pos(e)]];
           render(); emit("start");
         }}

@@ -193,3 +193,8 @@ td.actions .btn { padding: 4px 10px; font-size: 13px; }
 .room-drawing { margin: 0; display: grid; gap: 4px; }
 .room-drawing figcaption { font-size: 13px; display: flex; justify-content: space-between; gap: 6px; }
 @media (max-width: 640px) { .round-form { grid-template-columns: 1fr; } }
+
+/* ---------- Phase 6: teach the AI ---------- */
+.check { display: flex; gap: 8px; align-items: center; font-size: 13.5px; margin-top: 10px; }
+.mini-tiles.two { grid-template-columns: repeat(2, 1fr); }
+ul.plain { margin: 0 0 18px; padding-left: 18px; display: grid; gap: 8px; color: var(--muted); font-size: 14px; }

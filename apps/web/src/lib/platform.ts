@@ -32,6 +32,7 @@ export interface AdminMetrics {
   };
   model_version: string;
   model_loaded: boolean;
+  training: { ready: number; classes_covered: number; classes_total: number | null; contributors: number; by_input_type: Record<string, number> };
 }
 
 export const useModelInfo = () => useQuery({ queryKey: ["model"], queryFn: () => api<ModelInfo>("/model"), staleTime: Infinity, retry: false });
