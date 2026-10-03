@@ -19,3 +19,5 @@ packages/widget/dist/
 test-results/
 playwright-report/
 CLAUDE.md
+/yolov8n.pt
+/yolov8n.yaml
