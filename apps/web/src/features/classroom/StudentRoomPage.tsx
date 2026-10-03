@@ -39,9 +39,12 @@ export function StudentRoomPage() {
   // A new round starts with a clean board.
   useEffect(() => { if (roundNo != null) { session.boardRef.current?.clear(); setProblem(null); } }, [roundNo, session.boardRef]);
 
+  const done = useRef(false);
+  done.current = submitted;
+
   const handIn = useCallback(async () => {
     const strokes = session.getStrokes();
-    if (!token || roundNo == null || !strokes.length || sending.current) return;
+    if (!token || roundNo == null || !strokes.length || sending.current || done.current) return;
     sending.current = true;
     try {
       await submitDrawing(id, token, { strokes, duration_ms: session.getDurationMs() });
