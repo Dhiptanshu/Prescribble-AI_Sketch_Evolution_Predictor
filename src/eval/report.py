@@ -1,4 +1,4 @@
-"""Generate report/REPORT.md. Every number is read from runs/, demo/models/ and report/analysis.json (nothing typed by hand).
+"""Generate report/REPORT.md. Every number is read from runs/, models/v1/ and report/analysis.json (nothing typed by hand).
 
 python -m src.eval.report      (run src.eval.analysis first)
 """
@@ -34,7 +34,7 @@ def params(m):
 
 def main():
     res = {m: load(RUNS_DIR / m / "results.json") for m in ORDER}
-    meta = load(ROOT / "demo" / "models" / "meta.json")
+    meta = load(ROOT / "models" / "v1" / "meta.json")
     an = load(ROOT / "report" / "analysis.json")
     mnist = an["mnist_mlp_test_acc"]
     sp = RUNS_DIR / "sentiment" / "results.json"
@@ -107,7 +107,7 @@ The most common confusions at 30% are {', '.join(f"{c['true']} to {c['predicted'
 ## 5. Real-time system
 * Model exported to ONNX ({meta['size_mb']:.1f} MB), verified against PyTorch (max difference about 1e-7).
 * Inference: **{meta['latency_ms']:.1f} ms** per prediction in native ONNX Runtime on a CPU, about 17 to 20 ms in the browser (WebAssembly), so it updates on every pen movement.
-* The page runs entirely client-side: no server-side model, no internet, no GPU. A static Python server (`demo/serve.py`) is all a lab machine needs.
+* The page runs entirely client-side: no server-side model, no internet, no GPU. A static Python server (`apps/web/serve.py`) is all a lab machine needs.
 * The browser reproduces the Python preprocessing: the stroke-sequence features match exactly, and the rasteriser's mean pixel difference to the training renderer is under 0.01.
 
 ## 6. Limitations (honest)

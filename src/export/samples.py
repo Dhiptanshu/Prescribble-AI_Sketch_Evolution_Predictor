@@ -1,6 +1,6 @@
-"""Export a few REAL held-out test sketches (never trained on) for the demo's replay mode.
+"""Export a few REAL held-out test sketches (never trained on) for the web app's replay mode.
 
-python -m src.export.samples [--per-class 3]
+python -m src.export.samples [--per-class 3] [--version v1]
 """
 import argparse
 import json
@@ -12,7 +12,7 @@ from src.data.dataset import load_splits
 from src.data.partial import split_strokes
 
 
-def main(per_class: int):
+def main(per_class: int, version: str):
     sk, lb = load_splits()["test"]
     rng = np.random.default_rng(1)
     out = []
@@ -21,7 +21,7 @@ def main(per_class: int):
         for i in rng.choice(idx, size=min(per_class, len(idx)), replace=False):
             strokes = [np.round(s).astype(int).tolist() for s in split_strokes(sk[i])]
             out.append({"label": name, "strokes": strokes})
-    path = ROOT / "demo" / "models" / "samples.json"
+    path = ROOT / "models" / version / "samples.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     json.dump(out, open(path, "w"), separators=(",", ":"))
     print(f"wrote {len(out)} sketches -> {path}")
@@ -30,4 +30,6 @@ def main(per_class: int):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--per-class", type=int, default=3)
-    main(ap.parse_args().per_class)
+    ap.add_argument("--version", default="v1")
+    a = ap.parse_args()
+    main(a.per_class, a.version)
