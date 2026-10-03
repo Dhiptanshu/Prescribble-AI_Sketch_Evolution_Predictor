@@ -9,6 +9,7 @@ from app.deps import authenticate_key, seconds_until_midnight_utc
 from app.errors import ApiError
 from app.inference import get_scorer
 from app.models import ApiKey
+from app.services.registry import public_view
 from app.schemas import Guess, Limits, ModelInfo, PredictIn, PredictOut
 from app.services.drawings import enforce_limits, ink_length, normalise
 from app.services.metering import record, used_on
@@ -23,6 +24,12 @@ def model_info(request: Request):
     return ModelInfo(version=scorer.version, classes=scorer.classes, limits=Limits(
         requests_per_minute=s.api_per_minute, requests_per_day=s.api_daily_limit, max_strokes=s.max_strokes,
         max_points=s.max_points, max_active_keys=s.max_keys_per_user, top_k_max=10))
+
+
+@router.get("/models")
+def models(request: Request):
+    """Every registered model version with its measured numbers, and which one is live. No key needed."""
+    return public_view(request.app.state.settings)
 
 
 @router.post("/predict", response_model=PredictOut)

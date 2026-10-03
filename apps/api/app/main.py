@@ -17,7 +17,7 @@ from app.db import Base, make_engine, make_session_factory
 from app.errors import install_error_handlers
 from app.ratelimit import SlidingWindowLimiter
 from app.services.room_hub import RoomHub
-from app.routers import admin, auth, challenge, drawings, health, keys, predict, public, rooms, stats
+from app.routers import admin, auth, challenge, drawings, health, keys, predict, public, rooms, stats, teach
 
 API_PREFIX = "/api/v1"
 MAX_BODY_BYTES = 1_000_000      # API requests above this are refused before parsing (drawings are well under 100 KB)
@@ -47,6 +47,7 @@ def create_app(settings: Settings | None = None, clock: Callable[[], datetime] |
     app.state.join_limiter = SlidingWindowLimiter(settings.joins_per_minute)
     app.state.hub = RoomHub(app)
     app.state.clock = clock or (lambda: datetime.now(timezone.utc))
+    app.state.scorers = {}                       # scorers of non-live versions, kept so a running challenge or round finishes on its own model
     app.state.scorer = None                      # loaded on first use (see routers/challenge.py)
     app.state.scorer_lock = threading.Lock()
 
@@ -86,6 +87,7 @@ def create_app(settings: Settings | None = None, clock: Callable[[], datetime] |
     app.include_router(keys.router, prefix=API_PREFIX)
     app.include_router(predict.router, prefix=API_PREFIX)
     app.include_router(rooms.router, prefix=API_PREFIX)
+    app.include_router(teach.router, prefix=API_PREFIX)
     app.include_router(admin.router, prefix=API_PREFIX)
     app.include_router(public.router, prefix=API_PREFIX)
     if settings.web_dist:

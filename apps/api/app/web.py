@@ -12,6 +12,7 @@ from app.errors import ApiError
 
 # Only fingerprinted (assets/) and versioned (models/vN/) files are immutable. Fixed-name files (ort/, index.html) are revalidated via ETag.
 _IMMUTABLE = ("assets/", "models/")
+_REVALIDATED = ("models/registry.json",)           # the one fixed-name file under models/: it changes when a version is promoted
 # Never trust the host's mime registry (Windows maps .mjs to text/plain, and browsers refuse such module scripts).
 _MEDIA_TYPES = {".js": "text/javascript", ".mjs": "text/javascript", ".wasm": "application/wasm", ".onnx": "application/octet-stream",
                 ".json": "application/json", ".css": "text/css", ".html": "text/html; charset=utf-8", ".svg": "image/svg+xml"}
@@ -33,7 +34,8 @@ def install_web(app: FastAPI, dist: Path) -> None:
             raise ApiError(404, "not_found", "Not found")
         target = (dist / path).resolve() if path else index
         if target.is_file() and dist in target.parents:            # no path traversal outside dist
-            headers = {"Cache-Control": "public, max-age=31536000, immutable" if path.startswith(_IMMUTABLE) else "no-cache"}
+            immutable = path.startswith(_IMMUTABLE) and path not in _REVALIDATED
+            headers = {"Cache-Control": "public, max-age=31536000, immutable" if immutable else "no-cache"}
             if path.startswith(_CROSS_ORIGIN):
                 headers.update(_CROSS_ORIGIN_HEADERS)
             return FileResponse(target, media_type=_MEDIA_TYPES.get(target.suffix.lower()), headers=headers)

@@ -29,11 +29,12 @@ class Settings(BaseSettings):
     web_dist: Path | None = None              # built web app to serve (single-container deploys)
     max_strokes: int = 60                     # input limits for submitted drawings
     max_points: int = 2000
-    max_drawings_per_user: int = 200          # free-plan quota
+    max_drawings_per_user: int = 200          # free-plan quota (saved drawings; teaching contributions have their own)
+    max_teach_per_user: int = 1000            # drawings one person may contribute through the Teach page
     writes_per_minute: int = 30               # per signed-in user
     public_reads_per_minute: int = 120        # per client IP, shared-drawing pages
     models_dir: Path | None = None            # folder holding models/<version>/meta.json; auto-detected when unset
-    model_version: str = "v1"                 # the model that scores daily-challenge attempts
+    model_version: str | None = None          # pin a model version; unset = the live version in models/registry.json
     ml_root: Path | None = None               # folder containing the `src` training pipeline package; auto-detected when unset
     attempts_per_day: int = 3                 # scored attempts per user per UTC day
     min_attempt_ms: int = 400                 # faster than this is not a human drawing (attempt is kept but not counted)

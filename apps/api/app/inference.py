@@ -14,6 +14,7 @@ from fastapi import Request
 
 from app.classes import models_dir
 from app.errors import ApiError
+from app.services.registry import active_version
 from app.services.scoring import FRACTIONS, Step
 
 _ROOT_CANDIDATES = (Path(__file__).resolve().parents[3], Path("/app"))
@@ -76,15 +77,38 @@ class Scorer:
         return steps          # the last step is the finished drawing, so it also gives the final guess
 
 
-def get_scorer(request: Request) -> Scorer:
-    """The model is loaded on first use and then shared by every request (daily challenge and the public API)."""
+def get_scorer(request: Request, version: str | None = None) -> Scorer:
+    """The scorer for `version` (default: the live version), loaded on first use and then shared by every request.
+
+    A day's challenge or a classroom round is always scored by the model it started with, even if a newer version goes live meanwhile.
+    """
     state = request.app.state
-    if state.scorer is None:
-        with state.scorer_lock:
-            if state.scorer is None:
-                settings = state.settings
-                folder = models_dir(settings)
-                if folder is None or not (folder / settings.model_version / "sketch.onnx").is_file():
-                    raise ApiError(503, "model_unavailable", "The scoring model is not available on this server.")
-                state.scorer = Scorer(folder, settings.model_version, settings.ml_root)
-    return state.scorer
+    settings = state.settings
+    if version is None:
+        if state.scorer is None:
+            with state.scorer_lock:
+                if state.scorer is None:
+                    state.scorer = _load(request, active_version(settings))
+        return state.scorer
+    if state.scorer is not None and state.scorer.version == version:
+        return state.scorer
+    with state.scorer_lock:
+        if version not in state.scorers:
+            state.scorers[version] = _load(request, version)
+        return state.scorers[version]
+
+
+def _load(request: Request, version: str) -> Scorer:
+    settings = request.app.state.settings
+    folder = models_dir(settings)
+    if folder is None or not (folder / version / "sketch.onnx").is_file():
+        raise ApiError(503, "model_unavailable", "The scoring model is not available on this server.")
+    return Scorer(folder, version, settings.ml_root)
+
+
+def reload_active(request: Request) -> str:
+    """Forget the cached live scorer so the next request loads whatever the registry now says (after a promotion)."""
+    state = request.app.state
+    with state.scorer_lock:
+        state.scorer = None
+    return active_version(state.settings)

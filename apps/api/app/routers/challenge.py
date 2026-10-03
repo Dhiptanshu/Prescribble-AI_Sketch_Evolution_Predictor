@@ -117,7 +117,7 @@ def submit_attempt(body: AttemptIn, request: Request, user: User = Depends(write
         raise ApiError(409, "attempts_exhausted", f"You have used all {settings.attempts_per_day} attempts for today. A new word arrives at midnight UTC.")
 
     strokes = normalise(body.strokes)
-    timeline = get_scorer(request).timeline(strokes, challenge.target)       # the heavy part: 20 model runs on this drawing
+    timeline = get_scorer(request, challenge.model_version).timeline(strokes, challenge.target)       # the heavy part: 20 model runs on this drawing
     score, hit = score_timeline(timeline, challenge.target)
     final = timeline[-1]
     ink = ink_length(strokes)

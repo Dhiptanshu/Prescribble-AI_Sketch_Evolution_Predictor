@@ -212,7 +212,7 @@ def submit(room_id: int, body: SubmitIn, request: Request, x_room_token: str | N
         raise ApiError(409, "already_submitted", "You already handed in a drawing for this round.")
     enforce_limits(body.strokes, s)
     strokes = normalise(body.strokes)
-    timeline = get_scorer(request).timeline(strokes, rnd.target)
+    timeline = get_scorer(request, rnd.model_version).timeline(strokes, rnd.target)
     score, hit = score_timeline(timeline, rnd.target)
     ink = ink_length(strokes)
     sub = RoundSubmission(round_id=rnd.id, member_id=member.id, score=score, recognised_at=hit.fraction if hit else None,
