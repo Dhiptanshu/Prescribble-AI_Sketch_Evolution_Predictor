@@ -38,10 +38,20 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         pass
 
 
+class Server(socketserver.ThreadingTCPServer):
+    allow_reuse_address = True
+    daemon_threads = True
+
+    def handle_error(self, request, client_address):
+        # Browsers abort connections all the time (navigation, tab close). That is normal, not an error worth a traceback.
+        if isinstance(sys.exc_info()[1], (ConnectionError, BrokenPipeError)):
+            return
+        super().handle_error(request, client_address)
+
+
 if __name__ == "__main__":
     if not ROOT.exists():
         raise SystemExit("apps/web/dist not found. Build first: npm run build:web")
-    socketserver.TCPServer.allow_reuse_address = True
-    with socketserver.ThreadingTCPServer(("0.0.0.0", PORT), Handler) as srv:
+    with Server(("0.0.0.0", PORT), Handler) as srv:
         print(f"Prescribble running at http://localhost:{PORT}  (Ctrl+C to stop)")
         srv.serve_forever()
