@@ -82,7 +82,8 @@ alembic upgrade head                                     # also runs automatical
 | `DATABASE_URL` | `sqlite:///./prescribble.db` | use Postgres in production |
 | `SECRET_KEY` | random per process in dev | required (>= 32 chars) in prod |
 | `CORS_ORIGINS` | `http://localhost:5173` | JSON list |
-| `MODEL_VERSION` | `v1` | the model that scores daily-challenge attempts (needs `models/<version>/`) |
+| `MODEL_VERSION` | unset | pin a model version; unset = the live version in `models/registry.json` (see `docs/FLYWHEEL.md`) |
+| `MAX_TEACH_PER_USER` | `1000` | drawings one person may contribute through the Teach page |
 | `ML_ROOT` | auto | folder containing the `src` training-pipeline package (the Docker image places it in `/app`) |
 | `ATTEMPTS_PER_DAY` | `3` | scored attempts per user per UTC day |
 | `API_PER_MINUTE` / `API_DAILY_LIMIT` | `60` / `1000` | REST API limits per key (the daily limit is stored on each key when it is created) |
@@ -92,5 +93,6 @@ alembic upgrade head                                     # also runs automatical
 | `JOINS_PER_MINUTE` | `20` | room joins per client IP |
 
 ## Model versions
-`models/<version>/` holds `sketch.onnx`, `meta.json`, `results.json`, `samples.json`. The web build copies it into `public/models/`.
-Ship a new model by adding `models/v2/` and bumping `MODEL_VERSION` in `apps/web/src/lib/engine.tsx`.
+`models/<version>/` holds `sketch.onnx`, `meta.json`, `results.json`, `samples.json`; `models/registry.json` says which version is live. The web build copies the folder into `public/models/`.
+Ship a new model with no app change: `python -m src.flywheel.registry register vN`, then `promote vN --heldout <heldout.pkl>` (accuracy-gated), then `POST /api/v1/admin/model/reload`. Details, the data rules and the Kaggle retraining recipe: `docs/FLYWHEEL.md`.
+Class sets: `PRESCRIBBLE_CLASS_SET=v1|v2` selects the 30- or 100-class list for data preparation and training (`src/classsets.py`).

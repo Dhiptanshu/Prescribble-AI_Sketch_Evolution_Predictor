@@ -17,7 +17,7 @@ a { color: inherit; }
 .nav { display: flex; align-items: center; gap: 18px; padding: 14px 28px; flex-wrap: wrap; }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 750; letter-spacing: -.01em; text-decoration: none; font-size: 17px; }
 .nav-links { display: flex; gap: 4px; flex: 1; }
-.nav-links a { text-decoration: none; padding: 7px 12px; border-radius: 9px; color: var(--muted); font-weight: 600; font-size: 14px; }
+.nav-links a { white-space: nowrap; text-decoration: none; padding: 7px 10px; border-radius: 9px; color: var(--muted); font-weight: 600; font-size: 14px; }
 .nav-links a:hover { color: var(--text); background: var(--surface); }
 .nav-links a.active { color: var(--text); background: var(--surface); }
 .nav-right { display: flex; gap: 10px; align-items: center; }

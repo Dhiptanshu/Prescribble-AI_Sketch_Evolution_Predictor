@@ -16,6 +16,21 @@
         "quickdraw_test_top5_at_30": 0.9433333333333334,
         "quickdraw_test_top1_at_100": 0.9163333333333333
       }
+    },
+    "v2": {
+      "class_set": "v2",
+      "n_classes": 100,
+      "sha256": "46c32be3dd98feb3f0dfc87886f7d4630c61f58e650677c86dca3002310dae1c",
+      "created": "2026-10-03T10:02:18+00:00",
+      "parent": "v1",
+      "architecture": "fusion_ghost",
+      "size_mb": 18.012354,
+      "latency_ms": 5.343593389998205,
+      "notes": "100 QuickDraw classes (v1's 30 + 70), CNN + LSTM + ghost decoder, trained from scratch on a Kaggle GPU",
+      "metrics": {
+        "quickdraw_test_top5_at_30": 0.7970666666666667,
+        "quickdraw_test_top1_at_100": 0.7882666666666667
+      }
     }
   },
   "history": [
@@ -29,6 +44,86 @@
       "event": "promoted",
       "version": "v1",
       "gate": "first model"
+    },
+    {
+      "at": "2026-10-03T10:02:18+00:00",
+      "event": "registered",
+      "version": "v2"
+    },
+    {
+      "at": "2026-10-03T10:04:56+00:00",
+      "event": "promoted",
+      "version": "v2",
+      "previous": "v1",
+      "gate": "passed",
+      "report": {
+        "shared_classes": 30,
+        "dropped_classes": [],
+        "fractions": [
+          0.2,
+          0.3,
+          0.5
+        ],
+        "tolerance": 0.01,
+        "quickdraw": {
+          "n": 900,
+          "active_top5": 0.9277777777777777,
+          "candidate_top5": 0.918888888888889,
+          "delta": -0.008888888888888724,
+          "candidate_unmasked_top5": 0.7935555555555555,
+          "ok": true,
+          "by_fraction": {
+            "active": {
+              "0.2": {
+                "top1": 0.5733333333333334,
+                "top5": 0.8877777777777778
+              },
+              "0.3": {
+                "top1": 0.6777777777777778,
+                "top5": 0.93
+              },
+              "0.5": {
+                "top1": 0.7588888888888888,
+                "top5": 0.9655555555555555
+              }
+            },
+            "candidate": {
+              "0.2": {
+                "top1": 0.5355555555555556,
+                "top5": 0.8766666666666667
+              },
+              "0.3": {
+                "top1": 0.66,
+                "top5": 0.9222222222222223
+              },
+              "0.5": {
+                "top1": 0.7466666666666667,
+                "top5": 0.9577777777777777
+              }
+            },
+            "candidate_unmasked": {
+              "0.2": {
+                "top1": 0.318,
+                "top5": 0.701
+              },
+              "0.3": {
+                "top1": 0.4583333333333333,
+                "top5": 0.801
+              },
+              "0.5": {
+                "top1": 0.5763333333333334,
+                "top5": 0.8786666666666667
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "at": "2026-10-03T10:05:21+00:00",
+      "event": "rolled_back",
+      "version": "v1",
+      "from": "v2"
     }
   ]
 }
