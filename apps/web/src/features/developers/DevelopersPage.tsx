@@ -97,8 +97,14 @@ export function DevelopersPage() {
           <tbody>{ERRORS.map((e) => <tr key={e.code}><td>{e.status}</td><td><code>{e.code}</code></td><td>{e.meaning}</td></tr>)}</tbody>
         </table>
         <p className="meta" style={{ marginTop: 12 }}>
-          {info.data ? <>Model <b>{info.data.version}</b> recognises {info.data.classes.length} objects: {info.data.classes.join(", ")}. The full machine-readable reference is at <a href="/api/docs">/api/docs</a>.</> : null}
+          {info.data ? <>Model <b>{info.data.version}</b> recognises {info.data.classes.length} objects. The full machine-readable reference is at <a href="/api/docs">/api/docs</a>.</> : null}
         </p>
+        {info.data && (
+          <details className="class-list">
+            <summary>Show all {info.data.classes.length} objects</summary>
+            <p className="meta">{info.data.classes.join(", ")}</p>
+          </details>
+        )}
       </section>
 
       <KeysManager />

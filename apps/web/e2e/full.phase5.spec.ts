@@ -1,5 +1,5 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
-import { waitForModel, watchErrors } from "./helpers";
+import { liveSamples, waitForModel, watchErrors } from "./helpers";
 
 type Stroke = [number, number][];
 const PASSWORD = "Phase-Five-Passphrase-51";
@@ -32,7 +32,7 @@ async function person(browser: Browser, name = "person") {
 test.describe("phase 5: classrooms", () => {
   test("two students and a teacher play a synchronised round, and the server scores it", async ({ browser, request }) => {
     test.setTimeout(240_000);          // five browser profiles, three of them running the model: slow on a busy machine
-    const samples: { label: string; strokes: Stroke[] }[] = await (await request.get("/models/v1/samples.json")).json();
+    const samples: { label: string; strokes: Stroke[] }[] = await liveSamples(request);
     const cats = samples.filter((s) => s.label === "cat");
 
     const teacher = await person(browser, "teacher");

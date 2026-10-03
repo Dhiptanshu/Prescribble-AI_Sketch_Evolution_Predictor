@@ -1,5 +1,5 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
-import { waitForModel, watchErrors } from "./helpers";
+import { liveSamples, waitForModel, watchErrors } from "./helpers";
 
 type Stroke = [number, number][];
 interface Sample { label: string; strokes: Stroke[] }
@@ -8,7 +8,7 @@ const PASSWORD = "Phase-Three-Passphrase-31";
 
 async function sketchOf(request: APIRequestContext, k = 0): Promise<{ target: string; strokes: Stroke[] }> {
   const today = await (await request.get("/api/v1/challenge/today")).json();
-  const samples: Sample[] = await (await request.get("/models/v1/samples.json")).json();
+  const samples: Sample[] = await liveSamples(request);
   const matching = samples.filter((s) => s.label === today.target);
   return { target: today.target, strokes: matching[k % matching.length]!.strokes };
 }

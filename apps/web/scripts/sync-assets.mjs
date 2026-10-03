@@ -1,7 +1,7 @@
 // Copies runtime assets into public/ before dev/build:
 //  - ONNX Runtime Web WASM files   (from node_modules, so versions always match the installed package)
 //  - the versioned model artefacts (from /models/<version>, the single source of truth)
-import { cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -17,10 +17,18 @@ rmSync(join(pub, "ort"), { recursive: true, force: true });
 mkdirSync(join(pub, "ort"), { recursive: true });
 for (const f of ["ort-wasm-simd-threaded.mjs", "ort-wasm-simd-threaded.wasm"]) cpSync(join(ortDist, f), join(pub, "ort", f));
 
+// Only the live version ships with the web build (and the registry that names it): older and candidate versions stay in the repo, not in every
+// copy of the app, so the lab bundle does not grow with every model generation. Set SHIP_ALL_MODELS=1 to copy them all.
 const models = join(repo, "models");
-if (!existsSync(join(models, "v1/sketch.onnx"))) throw new Error("models/v1/sketch.onnx is missing");
+const registryFile = join(models, "registry.json");
+const active = existsSync(registryFile) ? JSON.parse(readFileSync(registryFile, "utf-8")).active ?? "v1" : "v1";
+if (!existsSync(join(models, active, "sketch.onnx"))) throw new Error(`models/${active}/sketch.onnx is missing (the live version in models/registry.json)`);
 rmSync(join(pub, "models"), { recursive: true, force: true });
-cpSync(models, join(pub, "models"), { recursive: true });
+mkdirSync(join(pub, "models"), { recursive: true });
+if (existsSync(registryFile)) cpSync(registryFile, join(pub, "models", "registry.json"));
+for (const version of process.env.SHIP_ALL_MODELS ? readdirSync(models).filter((d) => existsSync(join(models, d, "sketch.onnx"))) : [active]) {
+  cpSync(join(models, version), join(pub, "models", version), { recursive: true });
+}
 // The embeddable widget (built by `npm run build:widget`) is served from /widget/ for other websites to <script src> it.
 const widget = join(repo, "packages/widget/dist/prescribble-widget.js");
 if (!existsSync(widget)) throw new Error("widget not built. Run `npm run build:widget` (or `npm run build:web`, which does it first).");

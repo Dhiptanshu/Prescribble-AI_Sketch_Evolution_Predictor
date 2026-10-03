@@ -198,3 +198,4 @@ td.actions .btn { padding: 4px 10px; font-size: 13px; }
 .check { display: flex; gap: 8px; align-items: center; font-size: 13.5px; margin-top: 10px; }
 .mini-tiles.two { grid-template-columns: repeat(2, 1fr); }
 ul.plain { margin: 0 0 18px; padding-left: 18px; display: grid; gap: 8px; color: var(--muted); font-size: 14px; }
+.class-list { margin-top: 8px; } .class-list summary { cursor: pointer; font-size: 13.5px; color: var(--muted); } .class-list p { margin-top: 6px; line-height: 1.7; }

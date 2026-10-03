@@ -1,4 +1,4 @@
-import { expect, type Page } from "@playwright/test";
+import { expect, type APIRequestContext, type Page } from "@playwright/test";
 
 /** Collects console errors and uncaught exceptions so a test can assert the page was clean. */
 export function watchErrors(page: Page, ignore: RegExp[] = []) {
@@ -31,4 +31,10 @@ export const HOUSE: [number, number][][] = [
 
 export async function waitForModel(page: Page) {
   await expect(page.getByText(/model ready/)).toBeVisible({ timeout: 40_000 });
+}
+
+/** Real held-out QuickDraw sketches of the LIVE model version (models/registry.json says which one), as shipped with the web build. */
+export async function liveSamples(request: APIRequestContext): Promise<{ label: string; strokes: [number, number][][] }[]> {
+  const { active } = await (await request.get("/models/registry.json")).json();
+  return (await request.get(`/models/${active}/samples.json`)).json();
 }
