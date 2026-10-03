@@ -32,6 +32,8 @@ export function Layout() {
         <nav className="nav-links" aria-label="Main">
           <NavLink to="/studio">Studio</NavLink>
           {backend === "online" && <NavLink to="/challenge">Challenge</NavLink>}
+          <NavLink to="/developers">Developers</NavLink>
+          {user?.is_admin && <NavLink to="/admin">Admin</NavLink>}
           {user && <NavLink to="/gallery">Gallery</NavLink>}
           {user && <NavLink to="/stats">Stats</NavLink>}
         </nav>

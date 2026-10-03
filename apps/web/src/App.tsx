@@ -3,7 +3,9 @@ import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { RequireAuth } from "./components/RequireAuth";
 import { ChallengePage } from "./features/challenge/ChallengePage";
+import { AdminPage } from "./features/admin/AdminPage";
 import { LoginPage, RegisterPage } from "./features/auth/AuthPages";
+import { DevelopersPage } from "./features/developers/DevelopersPage";
 import { DrawingPage } from "./features/gallery/DrawingPage";
 import { GalleryPage } from "./features/gallery/GalleryPage";
 import { LandingPage } from "./features/landing/LandingPage";
@@ -34,6 +36,8 @@ export function App() {
                 <Route path="gallery/:id" element={<RequireAuth><DrawingPage /></RequireAuth>} />
                 <Route path="stats" element={<RequireAuth><StatsPage /></RequireAuth>} />
                 <Route path="challenge" element={<ChallengePage />} />
+                <Route path="developers" element={<DevelopersPage />} />
+                <Route path="admin" element={<AdminPage />} />
                 <Route path="settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
                 <Route path="d/:token" element={<SharedPage />} />
                 <Route path="login" element={<LoginPage />} />
