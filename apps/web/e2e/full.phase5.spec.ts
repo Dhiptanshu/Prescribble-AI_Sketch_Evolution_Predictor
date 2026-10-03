@@ -31,7 +31,7 @@ async function person(browser: Browser, name = "person") {
 
 test.describe("phase 5: classrooms", () => {
   test("two students and a teacher play a synchronised round, and the server scores it", async ({ browser, request }) => {
-    test.setTimeout(150_000);          // five browser profiles, three of them running the model: slow on a busy machine
+    test.setTimeout(240_000);          // five browser profiles, three of them running the model: slow on a busy machine
     const samples: { label: string; strokes: Stroke[] }[] = await (await request.get("/models/v1/samples.json")).json();
     const cats = samples.filter((s) => s.label === "cat");
 

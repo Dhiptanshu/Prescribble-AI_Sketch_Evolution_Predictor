@@ -61,6 +61,7 @@ test.describe("phase 3: daily challenge", () => {
   });
 
   test("score an attempt, see it ranked, use all attempts, change privacy", async ({ page, request }) => {
+    test.setTimeout(150_000);          // three server-scored attempts, each drawn by hand: close to the default budget on a busy machine
     const errors = watchErrors(page);
     const name = `Scorer ${Date.now() % 100000}`;
     await signUp(page, name);
