@@ -20,7 +20,7 @@ WORK = Path("/tmp/proj")                      # raw data and caches stay out of 
 OUT = Path("/kaggle/working/out")
 ENV = {**os.environ, "PRESCRIBBLE_CLASS_SET": "v3"}
 MODEL = "fusion_ghost_xl"
-EPOCHS, EPOCH_SIZE = "40", "300000"
+EPOCHS, EPOCH_SIZE = "48", "300000"
 LOG = OUT / "log.txt"
 
 

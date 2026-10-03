@@ -13,7 +13,7 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
 from src.common import EVAL_FRACS, SET_RUNS
-from src.data.dataset import PartialSketchTrain, as_float, eval_set, load_splits
+from src.data.dataset import EpochSampler, PartialSketchTrain, as_float, eval_set, load_splits
 from src.models.nets import VARIANTS, build
 
 
@@ -64,6 +64,7 @@ def main():
     ap.add_argument("--user-share", type=float, default=0.25, help="fraction of the stream that is user drawings")
     ap.add_argument("--user-input-type", help="only user drawings made with this pointer (mouse, touch, pen)")
     ap.add_argument("--out-name", help="run folder name under the class set's runs (default: the model name)")
+    ap.add_argument("--replay-samples", action="store_true", help="diagnostic only: reproduce the old bug (every epoch replays epoch 0)")
     ap.add_argument("--smoke", action="store_true", help="tiny run to check the pipeline")
     a = ap.parse_args()
 
@@ -81,7 +82,8 @@ def main():
         print(f"mixed in {len(sk) - n0} user-drawing draws ({a.user_share:.0%} of the stream) on top of {n0} QuickDraw sketches", flush=True)
     if a.smoke:
         a.epochs, a.epoch_size = 1, 2048
-    train_dl = DataLoader(PartialSketchTrain(sk, lb, a.epoch_size), batch_size=a.bs, shuffle=False,
+    sampler = EpochSampler(a.epoch_size)                 # fresh samples every epoch (see EpochSampler: ids used to restart each epoch)
+    train_dl = DataLoader(PartialSketchTrain(sk, lb, a.epoch_size), batch_size=a.bs, sampler=sampler,
                           num_workers=a.workers, drop_last=True, persistent_workers=a.workers > 0)
     val = eval_set("val")
     if a.smoke:
@@ -100,6 +102,7 @@ def main():
 
     best, rows = -1.0, []
     for ep in range(1, a.epochs + 1):
+        sampler.set_epoch(0 if a.replay_samples else ep - 1)
         model.train()
         t0, tot, n = time.time(), 0.0, 0
         for b in train_dl:

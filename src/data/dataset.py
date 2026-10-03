@@ -4,7 +4,7 @@ import pickle
 
 import numpy as np
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, Sampler
 
 from src.common import DATA_DIR, EVAL_FRACS
 from src.data.packed import PackedSketches, is_packed, load_labels
@@ -27,7 +27,30 @@ def sample_frac(rng: np.random.Generator) -> float:
     return float(rng.uniform(0.10, 1.0))
 
 
+class EpochSampler(Sampler):
+    """Hands the DataLoader sample ids that keep counting up across epochs (epoch 0 gets 0..n-1, epoch 1 gets n..2n-1, ...).
+
+    PartialSketchTrain draws everything about a sample (which drawing, how much of it, how it is augmented) from its id. With ids that restart
+    at 0 every epoch, every epoch replayed the SAME n samples and training only ever saw one fixed subset of the data, however many epochs ran.
+    Call set_epoch(k) before epoch k.
+    """
+
+    def __init__(self, size: int):
+        self.size, self.epoch = size, 0
+
+    def set_epoch(self, epoch: int) -> None:
+        self.epoch = epoch
+
+    def __len__(self) -> int:
+        return self.size
+
+    def __iter__(self):
+        return iter(range(self.epoch * self.size, (self.epoch + 1) * self.size))
+
+
 class PartialSketchTrain(Dataset):
+    """Training samples: each id (see EpochSampler) deterministically picks a drawing, an augmentation and a completion fraction."""
+
     def __init__(self, sketches, labels, epoch_size: int | None = None, seed: int = 0):
         self.sketches, self.labels = sketches, labels
         self.n = epoch_size or len(sketches)
@@ -37,7 +60,7 @@ class PartialSketchTrain(Dataset):
         return self.n
 
     def __getitem__(self, i):
-        rng = np.random.default_rng((self.seed, i, torch.initial_seed() % (2**31)))
+        rng = np.random.default_rng((self.seed, int(i)))
         j = int(rng.integers(len(self.sketches)))
         full = augment(self.sketches[j], rng)
         part = cut_prefix(full, sample_frac(rng))

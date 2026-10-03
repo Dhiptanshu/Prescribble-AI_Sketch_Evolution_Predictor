@@ -20,7 +20,7 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
 from src.common import EVAL_FRACS, NUM_CLASSES, RUNS_DIR
-from src.data.dataset import PartialSketchTrain, as_float, eval_set, load_splits
+from src.data.dataset import EpochSampler, PartialSketchTrain, as_float, eval_set, load_splits
 from src.syllabus.common import device, run_dir, save_figure, save_results, seed_all, style
 
 MEAN, STD = 0.449, 0.226                       # ImageNet luminance statistics, applied to the replicated channel
@@ -80,7 +80,8 @@ def train_one(name: str, arch: str, freeze: bool, lr: float, epochs: int, epoch_
     dev = device()
     seed_all(0)
     sk, lb = load_splits()["train"]
-    loader = DataLoader(PartialSketchTrain(sk, lb, epoch_size), batch_size=bs, num_workers=workers, shuffle=False, drop_last=True,
+    sampler = EpochSampler(epoch_size)
+    loader = DataLoader(PartialSketchTrain(sk, lb, epoch_size), batch_size=bs, sampler=sampler, num_workers=workers, drop_last=True,
                         persistent_workers=workers > 0)
     model = ImageNetBackbone(arch, freeze).to(dev)
     params = [p for p in model.parameters() if p.requires_grad]
@@ -88,6 +89,7 @@ def train_one(name: str, arch: str, freeze: bool, lr: float, epochs: int, epoch_
     sched = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=lr, total_steps=epochs * len(loader))
     hist = []
     for ep in range(1, epochs + 1):
+        sampler.set_epoch(ep - 1)
         model.train()
         t0, tot, n = time.time(), 0.0, 0
         for b in loader:
