@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "active": "v1",
+  "versions": {
+    "v1": {
+      "class_set": "v1",
+      "n_classes": 30,
+      "sha256": "70c08756bef67d499f25f61549e189e23100731e3a84ccd7d1324c9e8c584944",
+      "created": "2026-10-03T07:57:13+00:00",
+      "parent": null,
+      "architecture": "fusion_ghost",
+      "size_mb": 17.940392,
+      "latency_ms": 4.840651999984402,
+      "notes": "lab project model: 30 QuickDraw classes, CNN + LSTM + ghost decoder",
+      "metrics": {
+        "quickdraw_test_top5_at_30": 0.9433333333333334,
+        "quickdraw_test_top1_at_100": 0.9163333333333333
+      }
+    }
+  },
+  "history": [
+    {
+      "at": "2026-10-03T07:57:13+00:00",
+      "event": "registered",
+      "version": "v1"
+    },
+    {
+      "at": "2026-10-03T07:57:13+00:00",
+      "event": "promoted",
+      "version": "v1",
+      "gate": "first model"
+    }
+  ]
+}
