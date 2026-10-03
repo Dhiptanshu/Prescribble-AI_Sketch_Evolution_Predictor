@@ -13,6 +13,8 @@ node_modules/
 apps/web/dist/
 apps/web/public/ort/
 apps/web/public/models/
+apps/web/public/widget/
+packages/widget/dist/
 *.db
 .env
 test-results/

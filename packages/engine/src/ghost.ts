@@ -1,5 +1,5 @@
-import { IMG } from "@prescribble/engine/pipeline";
-import type { Prediction } from "@prescribble/engine";
+import type { Prediction } from "./model";
+import { IMG } from "./pipeline";
 
 /**
  * RGBA pixels (IMG x IMG) of the model's own prediction of how the drawing will end, in the accent colour.

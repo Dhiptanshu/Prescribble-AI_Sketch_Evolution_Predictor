@@ -3,12 +3,13 @@ FROM node:22-slim AS web
 WORKDIR /repo
 COPY package.json package-lock.json ./
 COPY packages/engine/package.json packages/engine/
+COPY packages/widget/package.json packages/widget/
 COPY apps/web/package.json apps/web/
 RUN npm ci --no-audit --no-fund
 COPY packages packages
 COPY apps/web apps/web
 COPY models models
-RUN npm run build -w @prescribble/web
+RUN npm run build:web
 
 FROM python:3.12-slim
 ENV PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1

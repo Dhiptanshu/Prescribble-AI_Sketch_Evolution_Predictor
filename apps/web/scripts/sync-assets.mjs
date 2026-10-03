@@ -21,4 +21,10 @@ const models = join(repo, "models");
 if (!existsSync(join(models, "v1/sketch.onnx"))) throw new Error("models/v1/sketch.onnx is missing");
 rmSync(join(pub, "models"), { recursive: true, force: true });
 cpSync(models, join(pub, "models"), { recursive: true });
-console.log("assets synced: ort wasm + models/");
+// The embeddable widget (built by `npm run build:widget`) is served from /widget/ for other websites to <script src> it.
+const widget = join(repo, "packages/widget/dist/prescribble-widget.js");
+if (!existsSync(widget)) throw new Error("widget not built. Run `npm run build:widget` (or `npm run build:web`, which does it first).");
+rmSync(join(pub, "widget"), { recursive: true, force: true });
+mkdirSync(join(pub, "widget"), { recursive: true });
+cpSync(widget, join(pub, "widget/prescribble-widget.js"));
+console.log("assets synced: ort wasm + models/ + widget/");

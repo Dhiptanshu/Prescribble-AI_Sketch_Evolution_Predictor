@@ -24,6 +24,10 @@
     "./pipeline": {
       "types": "./src/pipeline.ts",
       "default": "./src/pipeline.ts"
+    },
+    "./ghost": {
+      "types": "./src/ghost.ts",
+      "default": "./src/ghost.ts"
     }
   }
 }

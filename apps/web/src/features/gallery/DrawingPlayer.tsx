@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { IMG, cutStrokes } from "@prescribble/engine/pipeline";
 import type { Stroke } from "@prescribble/engine/pipeline";
 import type { Prediction, SketchModel } from "@prescribble/engine";
-import { ghostPixels } from "../../lib/ghost";
+import { ghostPixels } from "@prescribble/engine/ghost";
 import { cssVar, paintStrokes } from "../../lib/paint";
 import { canRecord, recordCanvas } from "./recordVideo";
 

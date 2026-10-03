@@ -9,12 +9,13 @@
     "apps/web"
   ],
   "scripts": {
-    "dev:web": "npm run dev -w @prescribble/web",
-    "build:web": "npm run build -w @prescribble/web",
+    "dev:web": "npm run build:widget && npm run dev -w @prescribble/web",
+    "build:web": "npm run build:widget && npm run build -w @prescribble/web",
     "test": "npm run test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "eslint .",
-    "test:e2e": "npm run test:e2e -w @prescribble/web"
+    "test:e2e": "npm run test:e2e -w @prescribble/web",
+    "build:widget": "npm run build -w @prescribble/widget"
   },
   "engines": {
     "node": ">=20"

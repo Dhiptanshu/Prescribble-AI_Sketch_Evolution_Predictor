@@ -1,9 +1,9 @@
 import { useEffect, useRef } from "react";
 import { IMG } from "@prescribble/engine/pipeline";
 import type { Prediction } from "@prescribble/engine";
-import { ghostPixels } from "../lib/ghost";
+import { ghostPixels } from "@prescribble/engine/ghost";
 
-/** The model's own prediction of how the drawing will end, drawn in the accent colour (see lib/ghost.ts). */
+/** The model's own prediction of how the drawing will end, drawn in the accent colour (see ghost.ts in the engine package). */
 export function GhostLayer({ prediction, enabled }: { prediction: Prediction | null; enabled: boolean }) {
   const ref = useRef<HTMLCanvasElement>(null);
 

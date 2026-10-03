@@ -75,6 +75,7 @@ def probe(base: str, root: Path, problems: list) -> None:
     if not re.search(r'/assets/[^"]+\.js', html):
         problems.append("index.html references no JavaScript bundle")
 
+    expect("/widget/prescribble-widget.js", ctype="text/javascript", min_size=10_000)           # the embeddable widget ships with the app
     expect("/ort/ort-wasm-simd-threaded.mjs", ctype="text/javascript", min_size=1000)   # module scripts must not be text/plain
     wasm = expect("/ort/ort-wasm-simd-threaded.wasm", ctype="application/wasm", min_size=1_000_000)
     if wasm[:4] != b"\x00asm":
