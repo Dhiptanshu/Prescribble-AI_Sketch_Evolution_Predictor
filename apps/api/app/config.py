@@ -41,6 +41,13 @@ class Settings(BaseSettings):
     api_daily_limit: int = 1000               # predictions per API key per UTC day (stored on each key when it is created)
     api_per_minute: int = 60                  # burst limit per API key
     max_keys_per_user: int = 5                # active API keys per account
+    max_open_rooms: int = 10                  # open classrooms per teacher
+    max_room_members: int = 60                # students per classroom
+    max_rounds_per_room: int = 30
+    round_min_s: int = 10                     # a round lasts between these many seconds
+    round_max_s: int = 300
+    round_grace_s: int = 3                    # after the timer, how long last drawings may still arrive
+    joins_per_minute: int = 20                # per client IP (also slows guessing of room codes)
 
     @model_validator(mode="after")
     def _finalise(self):

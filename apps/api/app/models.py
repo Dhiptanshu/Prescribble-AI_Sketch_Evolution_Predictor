@@ -26,6 +26,7 @@ class User(Base):
     drawings: Mapped[list["Drawing"]] = relationship(back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
     attempts: Mapped[list["ChallengeAttempt"]] = relationship(back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
     api_keys: Mapped[list["ApiKey"]] = relationship(back_populates="user", cascade="all, delete-orphan", passive_deletes=True)
+    rooms: Mapped[list["Room"]] = relationship(cascade="all, delete-orphan", passive_deletes=True)
 
 
 class Drawing(Base):
@@ -123,3 +124,75 @@ class ApiUsage(Base):
     requests: Mapped[int] = mapped_column(Integer, default=0)
     errors: Mapped[int] = mapped_column(Integer, default=0)
     total_ms: Mapped[float] = mapped_column(Float, default=0.0)      # summed model time, so avg = total_ms / requests
+
+
+class Room(Base):
+    """A classroom: a teacher's room that students join with a short code and a nickname (no student account needed)."""
+
+    __tablename__ = "rooms"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    name: Mapped[str] = mapped_column(String(60))
+    code: Mapped[str] = mapped_column(String(8), unique=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))     # a closed room accepts no joins and no submissions
+
+    members: Mapped[list["RoomMember"]] = relationship(cascade="all, delete-orphan", passive_deletes=True)
+    rounds: Mapped[list["RoomRound"]] = relationship(cascade="all, delete-orphan", passive_deletes=True, order_by="RoomRound.no")
+
+
+class RoomMember(Base):
+    """A student in a room. Identified by a random token (only its hash is stored), which the browser keeps for the session."""
+
+    __tablename__ = "room_members"
+    __table_args__ = (UniqueConstraint("room_id", "nickname_key"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    room_id: Mapped[int] = mapped_column(ForeignKey("rooms.id", ondelete="CASCADE"), index=True)
+    nickname: Mapped[str] = mapped_column(String(24))
+    nickname_key: Mapped[str] = mapped_column(String(24))                  # lower-cased, so "Sam" and "sam" cannot both join
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    joined_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class RoomRound(Base):
+    """One word, one timer. The round is 'drawing' until ends_at (or the teacher ends it), then students' last drawings are collected."""
+
+    __tablename__ = "room_rounds"
+    __table_args__ = (UniqueConstraint("room_id", "no"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    room_id: Mapped[int] = mapped_column(ForeignKey("rooms.id", ondelete="CASCADE"), index=True)
+    no: Mapped[int] = mapped_column(Integer)
+    target: Mapped[str] = mapped_column(String(40))
+    model_version: Mapped[str] = mapped_column(String(16))
+    duration_s: Mapped[int] = mapped_column(Integer)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    ends_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))      # set when the teacher ends the round early
+
+    submissions: Mapped[list["RoundSubmission"]] = relationship(cascade="all, delete-orphan", passive_deletes=True)
+
+
+class RoundSubmission(Base):
+    """A student's drawing for a round, scored by the server exactly like a daily-challenge attempt."""
+
+    __tablename__ = "round_submissions"
+    __table_args__ = (UniqueConstraint("round_id", "member_id"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    round_id: Mapped[int] = mapped_column(ForeignKey("room_rounds.id", ondelete="CASCADE"), index=True)
+    member_id: Mapped[int] = mapped_column(ForeignKey("room_members.id", ondelete="CASCADE"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+    score: Mapped[int] = mapped_column(Integer)
+    recognised_at: Mapped[float | None] = mapped_column(Float)
+    final_guess: Mapped[str] = mapped_column(String(40))
+    final_confidence: Mapped[float] = mapped_column(Float)
+    suspect: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    strokes: Mapped[list] = mapped_column(JSON)
+    n_strokes: Mapped[int] = mapped_column(Integer)
+    ink: Mapped[float] = mapped_column(Float)
+    duration_ms: Mapped[int | None] = mapped_column(Integer)
