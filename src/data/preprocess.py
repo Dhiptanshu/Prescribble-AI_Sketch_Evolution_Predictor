@@ -9,7 +9,7 @@ import pickle
 
 import numpy as np
 
-from src.common import CLASSES, PROC_DIR, RAW_DIR
+from src.common import CLASSES, DATA_DIR, RAW_DIR
 
 
 def parse(line: str):
@@ -52,8 +52,8 @@ def main(n_train: int, n_val: int, n_test: int) -> None:
             out[split][1].extend([label] * len(chunk))
         print(f"{name:12s} {len(sketches)}")
     out = {k: (v[0], np.asarray(v[1], np.int64)) for k, v in out.items()}
-    PROC_DIR.mkdir(parents=True, exist_ok=True)
-    with open(PROC_DIR / "sketches.pkl", "wb") as f:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    with open(DATA_DIR / "sketches.pkl", "wb") as f:
         pickle.dump(out, f, protocol=4)
     print({k: len(v[0]) for k, v in out.items()})
 

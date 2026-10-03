@@ -13,7 +13,7 @@ import onnxruntime as ort
 import torch
 import torch.nn as nn
 
-from src.common import CLASSES, IMG, MAX_PTS, RUNS_DIR, ROOT, SEQ_FEATS
+from src.common import CLASS_SET, CLASSES, IMG, MAX_PTS, ROOT, SEQ_FEATS, SET_RUNS
 from src.models.nets import build
 
 
@@ -37,7 +37,7 @@ def main():
     a = ap.parse_args()
 
     net = build(a.model)
-    net.load_state_dict(torch.load(RUNS_DIR / a.model / "best.pt", map_location="cpu"))
+    net.load_state_dict(torch.load(SET_RUNS / a.model / "best.pt", map_location="cpu"))
     net.eval()
     wrap = Wrapper(net).eval()
     img = torch.rand(1, 1, IMG, IMG)
@@ -63,8 +63,8 @@ def main():
     size = path.stat().st_size / 1e6
     print(f"latency {ms:.1f} ms/prediction (CPU), model {size:.1f} MB")
 
-    results = json.load(open(RUNS_DIR / a.model / "results.json"))
-    json.dump({"model": a.model, "version": a.version, "classes": CLASSES, "img": IMG, "max_pts": MAX_PTS, "seq_feats": SEQ_FEATS,
+    results = json.load(open(SET_RUNS / a.model / "results.json"))
+    json.dump({"model": a.model, "version": a.version, "class_set": CLASS_SET, "classes": CLASSES, "img": IMG, "max_pts": MAX_PTS, "seq_feats": SEQ_FEATS,
                "test_results": results, "latency_ms": ms, "size_mb": size},
               open(OUT / "meta.json", "w"), indent=2)
 

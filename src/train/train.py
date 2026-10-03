@@ -12,7 +12,7 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
-from src.common import EVAL_FRACS, RUNS_DIR
+from src.common import EVAL_FRACS, SET_RUNS
 from src.data.dataset import PartialSketchTrain, as_float, eval_set, load_splits
 from src.models.nets import VARIANTS, build
 
@@ -57,7 +57,7 @@ def main():
 
     torch.set_num_threads(a.threads)
     torch.manual_seed(0)
-    out = RUNS_DIR / a.model
+    out = SET_RUNS / a.model
     out.mkdir(parents=True, exist_ok=True)
 
     splits = load_splits()

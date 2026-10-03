@@ -6,12 +6,12 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
-from src.common import EVAL_FRACS, PROC_DIR
+from src.common import DATA_DIR, EVAL_FRACS
 from src.data.partial import augment, cut_prefix, render, to_seq
 
 
 def load_splits() -> dict:
-    with open(PROC_DIR / "sketches.pkl", "rb") as f:
+    with open(DATA_DIR / "sketches.pkl", "rb") as f:
         return pickle.load(f)
 
 
@@ -80,7 +80,7 @@ def eval_set(split: str, fracs=EVAL_FRACS) -> dict:
     """{frac: tensors}, cached on disk after the first build (parallel)."""
     import multiprocessing as mp
 
-    cache = PROC_DIR / f"eval_{split}.pt"
+    cache = DATA_DIR / f"eval_{split}.pt"
     if cache.exists():
         return torch.load(cache, map_location="cpu")
     sk, lb = load_splits()[split]
