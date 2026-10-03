@@ -54,7 +54,7 @@ Score = `round((1 - fraction) * 100)`; a drawing the AI never gets scores 0. Pla
 | Phase | Scope | Done when |
 |---|---|---|
 | **1. Foundation** | Monorepo, API skeleton (config, DB, migrations, auth, health), engine package, web shell + design system, Studio ported with guest mode | Register/login works end to end, Studio runs from the new app, API and engine tests green |
-| **2. Accounts & persistence** | Save drawings, gallery, personal stats, share links, replay export (WebM) | A user's history and stats persist and are computed from real records |
+| **2. Accounts & persistence** (done) | Save drawings, gallery, personal stats, share links, replay export (WebM) | A user's history and stats persist and are computed from real records |
 | **3. Compete** | Daily challenge, server-side verification, leaderboard, streaks | Scores are reproducible from stored strokes |
 | **4. Platform** | `/v1/predict`, API keys, usage metering, rate limits, docs page, embeddable widget, admin metrics | A third-party page can embed the widget with a key |
 | **5. Classrooms** | Rooms, live race, teacher view (WebSocket) | Two browsers play a synchronised round |
@@ -79,6 +79,12 @@ Score = `round((1 - fraction) * 100)`; a drawing the AI never gets scores 0. Pla
 - Lab bundle from the new web app (`scripts/make_web_bundle.py`, ~20 MB). Verified both ways in a real browser: API single-origin and the static server with no backend (offline mode).
 
 **Since then:** legacy `demo/` retired (the web app's offline mode and `scripts/make_web_bundle.py` replace it; `scripts/verify_web_bundle.py` self-checks the bundle; runbook in `docs/LAB.md`). Playwright smoke suite added: 11 tests in real Edge across the full product (API serving the app) and offline mode (static server, no backend). Model artefacts now live only in `models/<version>/` (`--version` flag on the export scripts).
+
+**Phase 2 done (saved drawings, gallery, stats, sharing, video export)**
+- **API:** `drawings` table (migration 0002, cascade delete), create / list (cursor pagination) / get / relabel / delete, share links (72-bit tokens, revocable, public page exposes only strokes, label, AI result, date and display name), `GET /me/stats`, export includes drawings. The server recomputes stroke count and ink length (never trusts the client), validates class names against the model's own `meta.json`, caps drawing size (strokes, points, 1 MB body), enforces a 200-drawing quota and per-user write rate limits. Other users' drawings answer 404, not 403. **47 API tests pass.**
+- **Web:** Save panel in the Studio (label defaults to the AI's guess; the "AI had it by X% of the ink" figure comes from the predictions that actually ran while drawing), Gallery with pagination, drawing page (real-model replay, relabel, share/unshare, delete), public share page, Stats page (tiles, 30-day activity chart, per-object table; honest empty states), replay export to a real `.webm` video recorded from the player canvas. 19 unit tests (incl. the recognition-point maths).
+- **End-to-end:** 16 Playwright tests in real Edge, including the whole journey of one drawing (save, replay, relabel, share, stranger views it, revoke, video download is a real file, stats, delete) and an intruder blocked from another user's drawing.
+- Honest limit: the recognition point is client-reported and therefore unverified; Phase 3 recomputes scores on the server for anything competitive.
 
 **Left over:** build the Docker image once Docker Desktop is running; one real lab rehearsal when possible (the lab runbook lists what is untested).
 
