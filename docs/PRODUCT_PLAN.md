@@ -55,7 +55,7 @@ Score = `round((1 - fraction) * 100)`; a drawing the AI never gets scores 0. Pla
 |---|---|---|
 | **1. Foundation** | Monorepo, API skeleton (config, DB, migrations, auth, health), engine package, web shell + design system, Studio ported with guest mode | Register/login works end to end, Studio runs from the new app, API and engine tests green |
 | **2. Accounts & persistence** (done) | Save drawings, gallery, personal stats, share links, replay export (WebM) | A user's history and stats persist and are computed from real records |
-| **3. Compete** | Daily challenge, server-side verification, leaderboard, streaks | Scores are reproducible from stored strokes |
+| **3. Compete** (done) | Daily challenge, server-side verification, leaderboard, streaks | Scores are reproducible from stored strokes |
 | **4. Platform** | `/v1/predict`, API keys, usage metering, rate limits, docs page, embeddable widget, admin metrics | A third-party page can embed the widget with a key |
 | **5. Classrooms** | Rooms, live race, teacher view (WebSocket) | Two browsers play a synchronised round |
 | **6. Model flywheel** | Opt-in feedback, dataset export, retrain on Kaggle, model registry/versions, scale to 100+ classes, mouse-drawing adaptation | New model version ships without touching app code; measured gain on real user drawings |
@@ -85,6 +85,17 @@ Score = `round((1 - fraction) * 100)`; a drawing the AI never gets scores 0. Pla
 - **Web:** Save panel in the Studio (label defaults to the AI's guess; the "AI had it by X% of the ink" figure comes from the predictions that actually ran while drawing), Gallery with pagination, drawing page (real-model replay, relabel, share/unshare, delete), public share page, Stats page (tiles, 30-day activity chart, per-object table; honest empty states), replay export to a real `.webm` video recorded from the player canvas. 19 unit tests (incl. the recognition-point maths).
 - **End-to-end:** 16 Playwright tests in real Edge, including the whole journey of one drawing (save, replay, relabel, share, stranger views it, revoke, video download is a real file, stats, delete) and an intruder blocked from another user's drawing.
 - Honest limit: the recognition point is client-reported and therefore unverified; Phase 3 recomputes scores on the server for anything competitive.
+
+**Phase 3 done (daily challenge, server-verified scores, leaderboard, streaks, settings)**
+- **Scoring is the server's job.** The API runs the same ONNX model and the same stroke-pipeline code as training (`src/data/partial.py`, imported, not re-implemented). It cuts a submitted drawing at 5% steps of its ink and scores by how early the AI's #1 guess is the day's word with at least 50% confidence: 100 at 5% of the ink down to 5 at 100%, 0 if never. The browser only displays the result.
+- **Measured, not assumed:** the server pipeline on 90 real held-out sketches gives Top-5 91.1% at 20% of the ink, 94.4% at 30%, and Top-1 91.1% on finished drawings, matching the model's published results (90.6 / 94.3 / 91.6). A test fails if it drifts below 80%.
+- **Daily word:** HMAC of the date with the server secret (unpredictable ahead of time), never the same word two days in a row, frozen in the database on first request.
+- **Fairness:** 3 attempts per user per UTC day, best counts; submissions drawn implausibly fast (under 0.4 s, or an impossible pen speed, or no time reported) are stored and flagged but kept off the leaderboard, and the player is told. This is best-effort against scripts, not a guarantee.
+- **Leaderboard:** ranked in SQL (window function), ties broken by who got there first, one row per player, previous days available, no emails or ids exposed. Players can hide their name (they keep their rank and show as "Anonymous").
+- **Streaks and record:** `GET /challenge/me` (current and longest streak, best, average, history).
+- **Settings page:** display name, leaderboard visibility, training consent (off by default), download my data, delete my account.
+- **Tests:** 75 API (incl. leaderboard rules, privacy, day rollover with an injected clock, cascade delete), 21 web unit, 20 Playwright e2e (incl. scoring a real held-out sketch through the UI, three attempts then lock, privacy toggle, and an instant scripted submission being kept off the board).
+- Found by the e2e tests and fixed: a heading whose `aria-label` hid the word from screen readers, and a post-deletion redirect that went to /login instead of home.
 
 **Left over:** build the Docker image once Docker Desktop is running; one real lab rehearsal when possible (the lab runbook lists what is untested).
 

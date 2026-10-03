@@ -72,6 +72,9 @@ alembic upgrade head                                     # also runs automatical
 | `DATABASE_URL` | `sqlite:///./prescribble.db` | use Postgres in production |
 | `SECRET_KEY` | random per process in dev | required (>= 32 chars) in prod |
 | `CORS_ORIGINS` | `http://localhost:5173` | JSON list |
+| `MODEL_VERSION` | `v1` | the model that scores daily-challenge attempts (needs `models/<version>/`) |
+| `ML_ROOT` | auto | folder containing the `src` training-pipeline package (the Docker image places it in `/app`) |
+| `ATTEMPTS_PER_DAY` | `3` | scored attempts per user per UTC day |
 
 ## Model versions
 `models/<version>/` holds `sketch.onnx`, `meta.json`, `results.json`, `samples.json`. The web build copies it into `public/models/`.
