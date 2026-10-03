@@ -37,3 +37,33 @@ export function drawLineChart(canvas: HTMLCanvasElement, series: Series[], o: Ch
     if (s.dots) for (const [x, y] of s.points) { ctx.beginPath(); ctx.arc(X(x), Y(y), 3, 0, 7); ctx.fillStyle = s.color; ctx.fill(); }
   }
 }
+
+/** Vertical bars (e.g. drawings per day). Labels are shown for the first, middle and last bar only. */
+export function drawBarChart(canvas: HTMLCanvasElement, bars: { label: string; value: number }[], color = "#7c5cff") {
+  const dpr = window.devicePixelRatio || 1, w = canvas.clientWidth, h = canvas.clientHeight;
+  canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+  const ctx = canvas.getContext("2d")!;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  const pad = { l: 28, r: 8, t: 8, b: 22 }, iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
+  const max = Math.max(1, ...bars.map((b) => b.value));
+  const top = max <= 4 ? max : Math.ceil(max / 4) * 4;
+  ctx.font = "11.5px system-ui, sans-serif";
+  ctx.strokeStyle = "rgba(127,127,160,.22)"; ctx.fillStyle = css("--muted"); ctx.lineWidth = 1; ctx.textAlign = "right";
+  for (let i = 0; i <= 2; i++) {
+    const v = Math.round((top * i) / 2), y = pad.t + ih - (v / top) * ih;
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(w - pad.r, y); ctx.stroke();
+    ctx.fillText(String(v), pad.l - 6, y + 4);
+  }
+  const slot = iw / Math.max(1, bars.length), bw = Math.max(2, slot * 0.7);
+  bars.forEach((b, i) => {
+    const bh = (b.value / top) * ih;
+    ctx.fillStyle = b.value ? color : "rgba(127,127,160,.18)";
+    ctx.fillRect(pad.l + i * slot + (slot - bw) / 2, pad.t + ih - Math.max(bh, b.value ? 1 : 2), bw, Math.max(bh, b.value ? 1 : 2));
+  });
+  ctx.fillStyle = css("--muted"); ctx.textAlign = "center";
+  [0, Math.floor((bars.length - 1) / 2), bars.length - 1].forEach((i) => {
+    const b = bars[i];
+    if (b) ctx.fillText(b.label, Math.min(w - 18, Math.max(pad.l + 14, pad.l + i * slot + slot / 2)), h - 6);
+  });
+}

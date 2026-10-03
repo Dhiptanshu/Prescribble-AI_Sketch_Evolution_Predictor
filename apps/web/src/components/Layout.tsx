@@ -31,6 +31,8 @@ export function Layout() {
         <Link to="/" className="brand"><Logo />{APP_NAME}</Link>
         <nav className="nav-links" aria-label="Main">
           <NavLink to="/studio">Studio</NavLink>
+          {user && <NavLink to="/gallery">Gallery</NavLink>}
+          {user && <NavLink to="/stats">Stats</NavLink>}
         </nav>
         <div className="nav-right">
           <EngineChip />

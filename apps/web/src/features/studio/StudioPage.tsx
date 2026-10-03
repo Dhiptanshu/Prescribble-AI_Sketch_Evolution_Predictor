@@ -9,6 +9,7 @@ import { useEngine } from "../../lib/engine";
 import { ChallengeMode } from "./modes/ChallengeMode";
 import { ReplayMode } from "./modes/ReplayMode";
 import type { ModeContext } from "./modes/types";
+import { SavePanel } from "./SavePanel";
 import { usePredictionLoop } from "./usePredictionLoop";
 
 type Mode = "free" | "challenge" | "replay";
@@ -31,10 +32,16 @@ export function StudioPage() {
   const [progress, setProgress] = useState<number | undefined>();
   const [banner, setBanner] = useState<ReactNode>(null);
   const [meta, setMeta] = useState({ strokes: 0, ink: 0 });
+  const [revision, setRevision] = useState(0);                    // bumps whenever the user changes the drawing
+  const timing = useRef<{ start: number | null; end: number | null }>({ start: null, end: null });
 
   const onBoardChange = useCallback((strokes: Stroke[], phase: BoardPhase) => {
     setMeta({ strokes: strokes.length, ink: Math.round(inkLength(strokes)) });
     if (phase === "set") return;                                  // scripted playback runs the model itself
+    if (phase === "start" && strokes.length === 1) timing.current = { start: performance.now(), end: null };
+    if (phase === "end") timing.current.end = performance.now();
+    if (phase === "clear") timing.current = { start: null, end: null };
+    setRevision((r) => r + 1);
     if (!strokes.length) { loop.reset(); return; }
     void loop.run(strokes, phase === "end" || phase === "undo" || phase === "start");
   }, [loop]);
@@ -93,6 +100,13 @@ export function StudioPage() {
           <div className="card-head"><h2>Confidence over time</h2><span className="meta">x = ink drawn</span></div>
           <ConfidenceChart history={loop.history} classes={model?.classes ?? []} />
         </section>
+        {mode !== "replay" && model && (
+          <SavePanel
+            mode={mode} classes={model.classes} last={loop.last} history={loop.history} revision={revision}
+            getStrokes={() => boardRef.current?.strokes() ?? []}
+            getDurationMs={() => (timing.current.start != null && timing.current.end != null ? Math.round(timing.current.end - timing.current.start) : null)}
+          />
+        )}
         {mode === "challenge" && model && <ChallengeMode {...ctx} />}
         {mode === "replay" && model && <ReplayMode {...ctx} />}
       </aside>
