@@ -4,7 +4,7 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["**/dist/**", "**/node_modules/**", "apps/web/public/**", "demo/**", "report/**", "notebooks/**", "kaggle/**", ".venv*/**"] },
+  { ignores: ["**/dist/**", "**/node_modules/**", "apps/web/public/**", "report/**", "notebooks/**", "kaggle/**", ".venv*/**"] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -17,5 +17,5 @@ export default tseslint.config(
       "@typescript-eslint/no-non-null-assertion": "off",   // noUncheckedIndexedAccess makes `!` the idiom for known-good indexes
     },
   },
-  { files: ["**/*.mjs", "eslint.config.js", "apps/web/vite.config.ts"], languageOptions: { globals: globals.node } },
+  { files: ["**/*.mjs", "eslint.config.js", "apps/web/vite.config.ts", "apps/web/playwright.config.ts", "apps/web/e2e/**/*.ts"], languageOptions: { globals: globals.node } },
 );
