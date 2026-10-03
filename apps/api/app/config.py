@@ -2,6 +2,7 @@
 import logging
 import secrets
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal
 
 from pydantic import model_validator
@@ -25,6 +26,7 @@ class Settings(BaseSettings):
     cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
 
     auth_attempts_per_minute: int = 10        # per client IP, register + login
+    web_dist: Path | None = None              # built web app to serve (single-container deploys)
     max_strokes: int = 60                     # input limits for submitted drawings
     max_points: int = 2000
 

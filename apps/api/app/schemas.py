@@ -57,3 +57,9 @@ class UserOut(BaseModel):
     is_admin: bool
     consent_training: bool
     created_at: datetime
+
+
+class SessionOut(BaseModel):
+    """Who is signed in right now. Always HTTP 200: `user` is null for visitors (no 401 noise in the browser console)."""
+
+    user: UserOut | None

@@ -57,4 +57,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(health.router)
     app.include_router(auth.router, prefix=API_PREFIX)
     app.include_router(auth.me_router, prefix=API_PREFIX)
+    if settings.web_dist:
+        from app.web import install_web
+        install_web(app, settings.web_dist)      # registered last so every API route wins
     return app

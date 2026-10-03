@@ -5,11 +5,11 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.deps import get_current_user
+from app.deps import get_current_user, get_current_user_optional
 from app.errors import ApiError
 from app.models import User
 from app.ratelimit import auth_rate_limit
-from app.schemas import DeleteAccountIn, LoginIn, ProfileUpdate, RegisterIn, UserOut
+from app.schemas import DeleteAccountIn, LoginIn, ProfileUpdate, RegisterIn, SessionOut, UserOut
 from app.security import create_session_token, hash_password, needs_rehash, verify_password
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -56,6 +56,11 @@ def login(body: LoginIn, request: Request, response: Response, db: Session = Dep
         db.commit()
     _start_session(request, response, user)
     return user
+
+
+@router.get("/session", response_model=SessionOut)
+def session(user: User | None = Depends(get_current_user_optional)):
+    return {"user": user}
 
 
 @router.post("/logout", status_code=204)

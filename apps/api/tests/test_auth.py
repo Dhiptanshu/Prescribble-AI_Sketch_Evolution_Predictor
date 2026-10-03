@@ -116,3 +116,12 @@ def test_prod_requires_a_strong_secret():
     import pytest
     with pytest.raises(ValueError):
         make_settings(env="prod", secret_key="short")
+
+
+def test_session_endpoint_never_returns_401(client, make_user):
+    assert client.get("/api/v1/auth/session").json() == {"user": None}      # visitor: 200, no console error
+    user = make_user()
+    body = client.get("/api/v1/auth/session")
+    assert body.status_code == 200 and body.json()["user"]["id"] == user["id"]
+    client.post("/api/v1/auth/logout")
+    assert client.get("/api/v1/auth/session").json() == {"user": None}
