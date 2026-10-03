@@ -38,6 +38,7 @@ class LoginIn(BaseModel):
 class ProfileUpdate(BaseModel):
     display_name: str | None = Field(default=None, min_length=1, max_length=40)
     consent_training: bool | None = None
+    show_on_leaderboard: bool | None = None
 
     @field_validator("display_name")
     @classmethod
@@ -57,6 +58,7 @@ class UserOut(BaseModel):
     display_name: str
     is_admin: bool
     consent_training: bool
+    show_on_leaderboard: bool
     created_at: datetime
 
 
@@ -155,3 +157,84 @@ class StatsOut(BaseModel):
     activity: list[DayCount]
     first_drawing_at: datetime | None
     last_drawing_at: datetime | None
+
+
+# ---------- daily challenge ----------
+class AttemptIn(BaseModel):
+    strokes: list[Annotated[list[Point], Field(min_length=1)]] = Field(min_length=1)
+    duration_ms: int | None = Field(default=None, ge=0, le=3_600_000)
+
+
+class AttemptSummary(BaseModel):
+    attempt_no: int
+    score: int
+    recognised_at: float | None
+    counted: bool                      # false when the attempt looked automated and is kept off the leaderboard
+    created_at: datetime
+
+
+class MyDay(BaseModel):
+    attempts_used: int
+    best_score: int | None
+    attempts: list[AttemptSummary]
+
+
+class TodayOut(BaseModel):
+    day: date
+    target: str
+    model_version: str
+    attempts_max: int
+    seconds_left: int
+    me: MyDay | None                   # null for visitors
+
+
+class TimelineStep(BaseModel):
+    fraction: float
+    top1: str
+    top1_p: float
+    p_target: float
+
+
+class AttemptOut(BaseModel):
+    attempt_no: int
+    attempts_left: int
+    score: int
+    recognised_at: float | None
+    confidence_at_hit: float | None
+    final_guess: str
+    final_confidence: float
+    counted: bool
+    best_score: int | None
+    rank: int | None
+    participants: int
+    timeline: list[TimelineStep]
+
+
+class LeaderboardEntry(BaseModel):
+    rank: int
+    name: str
+    score: int
+    recognised_at: float | None
+    is_me: bool
+
+
+class LeaderboardOut(BaseModel):
+    day: date
+    target: str
+    participants: int
+    entries: list[LeaderboardEntry]
+    me: LeaderboardEntry | None
+
+
+class ChallengeDay(BaseModel):
+    day: date
+    target: str
+    best_score: int
+
+
+class ChallengeStats(BaseModel):
+    played: int
+    best_score: int | None
+    average_best: float | None
+    streak: Streak
+    history: list[ChallengeDay]

@@ -79,6 +79,8 @@ def update_me(body: ProfileUpdate, user: User = Depends(get_current_user), db: S
         user.display_name = body.display_name
     if body.consent_training is not None:
         user.consent_training = body.consent_training
+    if body.show_on_leaderboard is not None:
+        user.show_on_leaderboard = body.show_on_leaderboard
     db.commit()
     return user
 

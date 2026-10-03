@@ -2,7 +2,10 @@
 import logging
 import time
 import uuid
+import threading
+from collections.abc import Callable
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,14 +16,15 @@ from app.config import Settings, get_settings
 from app.db import Base, make_engine, make_session_factory
 from app.errors import install_error_handlers
 from app.ratelimit import SlidingWindowLimiter
-from app.routers import auth, drawings, health, public, stats
+from app.routers import auth, challenge, drawings, health, public, stats
 
 API_PREFIX = "/api/v1"
 MAX_BODY_BYTES = 1_000_000      # API requests above this are refused before parsing (drawings are well under 100 KB)
 log = logging.getLogger("prescribble.access")
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app(settings: Settings | None = None, clock: Callable[[], datetime] | None = None) -> FastAPI:
+    """`clock` returns the current UTC time; tests inject their own to simulate days."""
     settings = settings or get_settings()
     engine = make_engine(settings.database_url)
 
@@ -37,6 +41,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.auth_limiter = SlidingWindowLimiter(settings.auth_attempts_per_minute)
     app.state.write_limiter = SlidingWindowLimiter(settings.writes_per_minute)
     app.state.public_limiter = SlidingWindowLimiter(settings.public_reads_per_minute)
+    app.state.clock = clock or (lambda: datetime.now(timezone.utc))
+    app.state.scorer = None                      # loaded on first use (see routers/challenge.py)
+    app.state.scorer_lock = threading.Lock()
 
     if settings.env == "test":
         Base.metadata.create_all(engine)
@@ -70,6 +77,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(auth.me_router, prefix=API_PREFIX)
     app.include_router(stats.router, prefix=API_PREFIX)
     app.include_router(drawings.router, prefix=API_PREFIX)
+    app.include_router(challenge.router, prefix=API_PREFIX)
     app.include_router(public.router, prefix=API_PREFIX)
     if settings.web_dist:
         from app.web import install_web

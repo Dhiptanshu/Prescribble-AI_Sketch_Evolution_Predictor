@@ -33,6 +33,11 @@ class Settings(BaseSettings):
     writes_per_minute: int = 30               # per signed-in user
     public_reads_per_minute: int = 120        # per client IP, shared-drawing pages
     models_dir: Path | None = None            # folder holding models/<version>/meta.json; auto-detected when unset
+    model_version: str = "v1"                 # the model that scores daily-challenge attempts
+    ml_root: Path | None = None               # folder containing the `src` training pipeline package; auto-detected when unset
+    attempts_per_day: int = 3                 # scored attempts per user per UTC day
+    min_attempt_ms: int = 400                 # faster than this is not a human drawing (attempt is kept but not counted)
+    max_ink_per_ms: float = 8.0               # frame pixels per millisecond; above this the input looks automated
 
     @model_validator(mode="after")
     def _finalise(self):
