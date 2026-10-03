@@ -1,6 +1,6 @@
 import { createContext, useContext, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ApiError, NetworkError, api } from "./api";
+import { NetworkError, api } from "./api";
 
 export interface User {
   id: number;
@@ -29,9 +29,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     staleTime: 60_000,
     queryFn: async () => {
       try {
-        return { user: await api<User>("/me"), backend: "online" };
+        // Always 200 (user is null for visitors), so there is no 401 in the console for logged-out people.
+        const { user } = await api<{ user: User | null }>("/auth/session");
+        return { user, backend: "online" };
       } catch (e) {
-        if (e instanceof ApiError && e.status === 401) return { user: null, backend: "online" };
         if (e instanceof NetworkError) return { user: null, backend: "offline" };
         throw e;
       }
