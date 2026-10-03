@@ -10,7 +10,7 @@ product: accounts, saved drawings, a public API and classrooms. See [docs/PRODUC
 |---|---:|---:|---:|---:|---:|
 | Deployed model (CNN + LSTM + ghost) | 77.6 | 90.6 | 94.3 | 97.0 | 98.8 |
 
-Full results, ablations and limitations: [report/REPORT.md](report/REPORT.md). Original lab plan and syllabus mapping: [PLAN.md](PLAN.md).
+Full results, ablations and limitations: [report/REPORT.md](report/REPORT.md); the VAE / GAN / YOLO / VGG / digit-CNN experiments: [report/SYLLABUS.md](report/SYLLABUS.md). Original lab plan and syllabus mapping: [PLAN.md](PLAN.md).
 
 ## Quick start
 ```bash
@@ -54,6 +54,8 @@ python -m src.train.train --model lstm            # Module IV
 python -m src.train.train --model fusion
 python -m src.train.train --model fusion_ghost    # Module II (ghost decoder)
 python -m src.train.train --model resnet_ghost    # Module V (transfer learning)
+# Syllabus gaps (Kaggle GPU run, see report/SYLLABUS.md): CNN on digits, conv AE, VAE, GAN, YOLO detection, VGG16 transfer
+python -m src.syllabus.digit_cnn                  # Module III   (then ae, vae, gan, detection.train_scratch, detection.train_yolov8, vgg_transfer)
 python -m src.train.sentiment_lstm                # Module IV (sentiment analysis)
 python -m src.eval.collect && python -m src.export.samples
 python -m src.export.to_onnx --model fusion_ghost          # writes models/v1 (use --version v2 for a new model)

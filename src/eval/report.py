@@ -113,9 +113,9 @@ The most common confusions at 30% are {', '.join(f"{c['true']} to {c['predicted'
 ## 6. Limitations (honest)
 * Test accuracy is on **held-out QuickDraw sketches**. Live drawings with a mouse differ from the phone/touch drawings in QuickDraw. This domain shift was only sanity-checked with scripted pointer input, **not** measured in a user study, so expect lower accuracy for real users, especially for very small or off-centre drawings.
 * Only {len(CLASSES)} classes. More classes would lower early accuracy.
-* The ghost is blurry by construction (mean prediction); a VAE or GAN could give sharper, multi-modal completions (not implemented).
+* The ghost is blurry by construction (mean prediction); a VAE or GAN could give sharper, multi-modal completions. VAE and GAN were built and measured on MNIST (see SYLLABUS.md) but not applied to sketch completion.
 * A single training run per model (no seeds / confidence intervals); differences of about 1 point between the CNN, LSTM and fusion models should not be over-interpreted.
-* Multi-object detection (YOLO) was out of scope.
+* Object detection (YOLO) was done on composed digit scenes, not on the sketch app itself (see SYLLABUS.md).
 
 ## 7. Reproduce
 See the README. Training scripts: `src/train/train.py`; Kaggle driver: `kaggle/kernel/train_kaggle.py`.

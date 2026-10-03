@@ -14,7 +14,7 @@ for the roadmap and progress, and [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for
 Done and verified: 30-class stroke data pipeline, NumPy MLP (MNIST 97.85%), CNN / LSTM / fusion / ghost / ResNet18 models trained on Kaggle GPU,
 ONNX export (4.8 ms CPU, ~18 ms in browser), browser demo (free draw, AI challenge, replay of real test sketches), report, figures, five module notebooks,
 IMDB sentiment LSTM (85.67%), USB bundle (superseded: the legacy `demo/` was retired; use `scripts/make_web_bundle.py`, see docs/LAB.md). Headline: Top-5 90.6% at 20% of the ink, 94.3% at 30%.
-Cut as planned: GAN, YOLO/multi-object mode. Still to do: rehearse on a real lab machine (Ubuntu, Firefox/Chromium), prepare slides from `report/`.
+GAN, VAE, YOLO detection, VGG, conv AE and the digit CNN were added afterwards as separate experiments on a Kaggle GPU (3 Oct 2026): see [report/SYLLABUS.md](report/SYLLABUS.md). Not done: a sketch multi-object scene mode in the app, and VAE/GAN ghost completion. Still to do: rehearse on a real lab machine (Ubuntu, Firefox/Chromium), prepare slides from `report/`.
 See [report/REPORT.md](report/REPORT.md) for results and honest limitations.
 
 ---
