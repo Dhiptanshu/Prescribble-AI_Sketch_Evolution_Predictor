@@ -31,6 +31,7 @@ export function Layout() {
         <Link to="/" className="brand"><Logo />{APP_NAME}</Link>
         <nav className="nav-links" aria-label="Main">
           <NavLink to="/studio">Studio</NavLink>
+          {backend === "online" && <NavLink to="/challenge">Challenge</NavLink>}
           {user && <NavLink to="/gallery">Gallery</NavLink>}
           {user && <NavLink to="/stats">Stats</NavLink>}
         </nav>
@@ -39,7 +40,7 @@ export function Layout() {
           {backend === "offline" && <span className="chip" title="No backend reachable: accounts are unavailable, the Studio works normally."><i className="dot" />offline mode</span>}
           {backend === "online" && (user ? (
             <>
-              <span className="meta" aria-label="Signed in as">{user.display_name}</span>
+              <NavLink className="who" to="/settings" aria-label="Account settings">{user.display_name}</NavLink>
               <button className="btn" onClick={() => logout.mutate()} disabled={logout.isPending}>Sign out</button>
             </>
           ) : (

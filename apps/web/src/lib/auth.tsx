@@ -8,6 +8,7 @@ export interface User {
   display_name: string;
   is_admin: boolean;
   consent_training: boolean;
+  show_on_leaderboard: boolean;
   created_at: string;
 }
 
@@ -57,5 +58,15 @@ export function useAuthActions() {
       qc.removeQueries({ predicate: (q) => q.queryKey[0] !== "me" });   // drop every cached per-user query, keep the live session query
     },
   });
-  return { login, register, logout };
+  const updateProfile = useMutation({
+    mutationFn: (b: { display_name?: string; consent_training?: boolean; show_on_leaderboard?: boolean }) => api<User>("/me", { method: "PATCH", json: b }),
+    onSuccess: (user) => { setUser(user); void qc.invalidateQueries({ queryKey: ["challenge"] }); },     // a new name or visibility changes the boards
+  });
+  /** Forget the signed-in user locally. Call it together with a navigation away from pages that need an account. */
+  const clearSession = () => {
+    setUser(null);
+    qc.removeQueries({ predicate: (q) => q.queryKey[0] !== "me" });
+  };
+  const deleteAccount = useMutation({ mutationFn: (password: string) => api("/me", { method: "DELETE", json: { password } }) });
+  return { login, register, logout, updateProfile, deleteAccount, clearSession };
 }

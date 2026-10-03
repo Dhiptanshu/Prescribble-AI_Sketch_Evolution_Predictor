@@ -1,8 +1,6 @@
-import { useCallback, useRef, useState, type ReactNode } from "react";
-import { inkLength } from "@prescribble/engine/pipeline";
-import type { Stroke } from "@prescribble/engine";
+import { useState, type ReactNode } from "react";
 import { ConfidenceChart } from "../../components/ConfidenceChart";
-import { DrawingBoard, type BoardHandle, type BoardPhase } from "../../components/DrawingBoard";
+import { DrawingBoard } from "../../components/DrawingBoard";
 import { GhostLayer } from "../../components/GhostLayer";
 import { GuessPanel } from "../../components/GuessPanel";
 import { useEngine } from "../../lib/engine";
@@ -10,6 +8,7 @@ import { ChallengeMode } from "./modes/ChallengeMode";
 import { ReplayMode } from "./modes/ReplayMode";
 import type { ModeContext } from "./modes/types";
 import { SavePanel } from "./SavePanel";
+import { useDrawSession } from "./useDrawSession";
 import { usePredictionLoop } from "./usePredictionLoop";
 
 type Mode = "free" | "challenge" | "replay";
@@ -23,7 +22,7 @@ export function StudioPage() {
   const engine = useEngine();
   const model = engine.status === "ready" ? engine.model : null;
   const loop = usePredictionLoop(model);
-  const boardRef = useRef<BoardHandle>(null);
+  const { boardRef, meta, revision, onChange, getStrokes, getDurationMs } = useDrawSession(loop);
 
   const [mode, setMode] = useState<Mode>("free");
   const [ghost, setGhost] = useState(true);
@@ -31,20 +30,6 @@ export function StudioPage() {
   const [truth, setTruth] = useState<string | null>(null);
   const [progress, setProgress] = useState<number | undefined>();
   const [banner, setBanner] = useState<ReactNode>(null);
-  const [meta, setMeta] = useState({ strokes: 0, ink: 0 });
-  const [revision, setRevision] = useState(0);                    // bumps whenever the user changes the drawing
-  const timing = useRef<{ start: number | null; end: number | null }>({ start: null, end: null });
-
-  const onBoardChange = useCallback((strokes: Stroke[], phase: BoardPhase) => {
-    setMeta({ strokes: strokes.length, ink: Math.round(inkLength(strokes)) });
-    if (phase === "set") return;                                  // scripted playback runs the model itself
-    if (phase === "start" && strokes.length === 1) timing.current = { start: performance.now(), end: null };
-    if (phase === "end") timing.current.end = performance.now();
-    if (phase === "clear") timing.current = { start: null, end: null };
-    setRevision((r) => r + 1);
-    if (!strokes.length) { loop.reset(); return; }
-    void loop.run(strokes, phase === "end" || phase === "undo" || phase === "start");
-  }, [loop]);
 
   const switchMode = (m: Mode) => {
     if (m === mode) return;
@@ -70,7 +55,7 @@ export function StudioPage() {
         <div className="banner">{mode === "free" ? freeBanner : banner}</div>
         <DrawingBoard
           ref={boardRef}
-          onChange={onBoardChange}
+          onChange={onChange}
           locked={locked || !model}
           underlay={<GhostLayer prediction={loop.last} enabled={ghost} />}
           hint={model ? "Draw big, anywhere in the box. The AI starts guessing after your first stroke." : "Loading the model…"}
@@ -103,8 +88,7 @@ export function StudioPage() {
         {mode !== "replay" && model && (
           <SavePanel
             mode={mode} classes={model.classes} last={loop.last} history={loop.history} revision={revision}
-            getStrokes={() => boardRef.current?.strokes() ?? []}
-            getDurationMs={() => (timing.current.start != null && timing.current.end != null ? Math.round(timing.current.end - timing.current.start) : null)}
+            getStrokes={getStrokes} getDurationMs={getDurationMs}
           />
         )}
         {mode === "challenge" && model && <ChallengeMode {...ctx} />}

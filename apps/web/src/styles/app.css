@@ -136,3 +136,22 @@ a { color: inherit; }
 .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 20px; }
 .stats-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; }
 @media (max-width: 920px) { .stats-grid { grid-template-columns: 1fr; } }
+
+/* ---------- Phase 3: challenge, leaderboard, settings ---------- */
+.prompt { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 8px; }
+.prompt h1 { font-size: clamp(30px, 5vw, 44px); letter-spacing: -.03em; line-height: 1.05; }
+.score-row { display: flex; align-items: baseline; gap: 10px; }
+.score { font-size: 54px; letter-spacing: -.03em; line-height: 1; }
+.seg { display: inline-flex; background: rgba(127, 127, 160, .12); border-radius: 10px; padding: 3px; }
+.seg button { background: transparent; border: 0; color: var(--muted); padding: 5px 12px; border-radius: 8px; font: inherit; font-size: 12.5px; font-weight: 650; cursor: pointer; }
+.seg button.active { background: var(--bg-elev); color: var(--text); }
+tr.me td { color: var(--good); font-weight: 650; }
+td.gap { text-align: center; color: var(--muted); }
+.mini-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.mini-tiles div { background: rgba(127, 127, 160, .1); border-radius: 12px; padding: 10px; text-align: center; }
+.mini-tiles b { display: block; font-size: 22px; } .mini-tiles span { font-size: 11.5px; color: var(--muted); }
+.nav-right .who { text-decoration: none; font-weight: 650; font-size: 14px; color: var(--muted); padding: 6px 8px; border-radius: 8px; }
+.nav-right .who:hover, .nav-right .who.active { color: var(--text); background: var(--surface); }
+.settings { max-width: 720px; margin: 0 auto; display: grid; gap: 18px; }
+.setting { display: grid; gap: 6px; padding: 6px 0 12px; }
+@media (max-width: 520px) { .mini-tiles { grid-template-columns: repeat(2, 1fr); } }

@@ -57,7 +57,7 @@ export function LandingPage() {
 
       <section className="section">
         <h2>What is next</h2>
-        <p className="sub">On the roadmap, not live yet: a daily challenge with a leaderboard, an embeddable widget and API for developers, and classroom rooms.</p>
+        <p className="sub">Live now: the daily challenge, with a new word every day and a leaderboard. On the roadmap, not live yet: an embeddable widget and API for developers, and classroom rooms.</p>
       </section>
     </>
   );
