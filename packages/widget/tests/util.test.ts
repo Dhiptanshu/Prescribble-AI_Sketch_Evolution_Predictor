@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { assetsBaseFrom, clampSize, resolveTheme, toGuesses } from "../src/util";
+import { afterEach, describe, expect, it } from "vitest";
+import { assetsBaseFrom, clampSize, resolveTheme, resolveVersion, toGuesses } from "../src/util";
 
 describe("assetsBaseFrom", () => {
   it("finds the site root from the script's own URL", () => {
@@ -47,5 +47,32 @@ describe("toGuesses", () => {
     expect(toGuesses([{ name: "house", p: 0.98765 }, { name: "tree", p: 0.00004 }])).toEqual([
       { label: "house", probability: 0.988 }, { label: "tree", probability: 0 },
     ]);
+  });
+});
+
+describe("resolveVersion", () => {
+  const registry = (body: unknown, ok = true) => (async () => ({ ok, json: async () => body })) as unknown as typeof fetch;
+  const real = globalThis.fetch;
+  afterEach(() => { globalThis.fetch = real; });
+
+  it("uses the version the page asked for without any request", async () => {
+    globalThis.fetch = (() => { throw new Error("must not fetch"); }) as unknown as typeof fetch;
+    expect(await resolveVersion("https://x.example/", "v7")).toBe("v7");
+  });
+
+  it("otherwise follows the live version named in models/registry.json", async () => {
+    let asked = "";
+    globalThis.fetch = (async (url: string) => { asked = url; return { ok: true, json: async () => ({ active: "v2" }) }; }) as unknown as typeof fetch;
+    expect(await resolveVersion("https://x.example/")).toBe("v2");
+    expect(asked).toBe("https://x.example/models/registry.json");
+  });
+
+  it("falls back to v1 when there is no registry, it is unreadable or it names nothing", async () => {
+    globalThis.fetch = registry({}, false);
+    expect(await resolveVersion("https://x.example/")).toBe("v1");
+    globalThis.fetch = registry({ active: 5 });
+    expect(await resolveVersion("https://x.example/")).toBe("v1");
+    globalThis.fetch = (async () => { throw new Error("offline"); }) as unknown as typeof fetch;
+    expect(await resolveVersion("https://x.example/")).toBe("v1");
   });
 });

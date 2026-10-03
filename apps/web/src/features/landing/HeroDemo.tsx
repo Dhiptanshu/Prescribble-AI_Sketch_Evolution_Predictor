@@ -4,7 +4,7 @@ import type { Stroke } from "@prescribble/engine";
 import { DrawingBoard, type BoardHandle } from "../../components/DrawingBoard";
 import { GhostLayer } from "../../components/GhostLayer";
 import { GuessPanel } from "../../components/GuessPanel";
-import { MODEL_VERSION, useEngine } from "../../lib/engine";
+import { useEngine } from "../../lib/engine";
 import { usePredictionLoop } from "../studio/usePredictionLoop";
 
 interface Sample { label: string; strokes: Stroke[] }
@@ -14,17 +14,18 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 export function HeroDemo() {
   const engine = useEngine();
   const model = engine.status === "ready" ? engine.model : null;
+  const version = engine.status === "ready" ? engine.version : null;
   const { last, run, reset } = usePredictionLoop(model);
   const board = useRef<BoardHandle>(null);
   const [truth, setTruth] = useState<string | null>(null);
   const [frac, setFrac] = useState(0);
 
   useEffect(() => {
-    if (!model) return;
+    if (!model || !version) return;
     let alive = true;
     (async () => {
       let samples: Sample[] = [];
-      try { samples = await (await fetch(`${import.meta.env.BASE_URL}models/${MODEL_VERSION}/samples.json`)).json(); } catch { return; }
+      try { samples = await (await fetch(`${import.meta.env.BASE_URL}models/${version}/samples.json`)).json(); } catch { return; }
       while (alive && samples.length) {
         const s = samples[Math.floor(Math.random() * samples.length)]!;
         setTruth(s.label); setFrac(0); board.current?.clear(); reset();
@@ -40,7 +41,7 @@ export function HeroDemo() {
       }
     })();
     return () => { alive = false; };
-  }, [model, run, reset]);
+  }, [model, version, run, reset]);
 
   return (
     <div className="card" aria-label="Live demo">

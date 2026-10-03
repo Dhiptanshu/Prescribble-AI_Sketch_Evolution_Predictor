@@ -2,7 +2,7 @@ import { SketchModel, type Prediction } from "@prescribble/engine";
 import { ghostPixels } from "@prescribble/engine/ghost";
 import { FRAME, IMG, inkLength, type Stroke } from "@prescribble/engine/pipeline";
 import { STYLES } from "./styles";
-import { assetsBaseFrom, clampSize, resolveTheme, toGuesses, type Guess, type ThemeOption } from "./util";
+import { assetsBaseFrom, clampSize, resolveTheme, resolveVersion, toGuesses, type Guess, type ThemeOption } from "./util";
 
 export interface GuessEvent { top5: Guess[]; ink: number; strokes: Stroke[] }
 
@@ -14,7 +14,7 @@ export interface MountOptions {
   showGhost?: boolean;
   /** Where models/ and ort/ are served from. Default: the host that served this script. */
   assetsBase?: string;
-  /** Model version folder under models/. Default "v1". */
+  /** Model version folder under models/. Default: the live version named in models/registry.json (so a promoted model reaches every page). */
   model?: string;
   onReady?: (info: { classes: string[] }) => void;
   onGuess?: (event: GuessEvent) => void;
@@ -56,7 +56,7 @@ export function mount(target: string | Element, options: MountOptions = {}): Wid
   const host = typeof target === "string" ? document.querySelector(target) : target;
   if (!host) throw new Error(`Prescribble: no element matches "${String(target)}"`);
   if (host.shadowRoot) throw new Error("Prescribble: this element already has a widget mounted on it");
-  const opts = { showGuesses: true, showGhost: true, model: "v1", ...options };
+  const opts = { showGuesses: true, showGhost: true, ...options };
   const base = assetsBaseFrom(scriptSource.src, opts.assetsBase);
 
   const shadow = host.attachShadow({ mode: "open" });
@@ -181,7 +181,7 @@ export function mount(target: string | Element, options: MountOptions = {}): Wid
   clearBtn.addEventListener("click", clear, { signal });
   showGuesses(null);
 
-  loadModel(base, opts.model).then((m) => {
+  resolveVersion(base, opts.model).then((version) => loadModel(base, version)).then((m) => {
     if (signal.aborted) return;
     model = m;
     hint.textContent = "Draw anything. The AI guesses as you go.";

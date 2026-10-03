@@ -23,3 +23,15 @@ export interface Guess { label: string; probability: number }
 export function toGuesses(top5: { name: string; p: number }[]): Guess[] {
   return top5.map((g) => ({ label: g.name, probability: Math.round(g.p * 1000) / 1000 }));
 }
+
+/** The version to load: the one the page asked for, else the live one from models/registry.json, else v1 (a host with no registry). */
+export async function resolveVersion(base: string, requested?: string): Promise<string> {
+  if (requested) return requested;
+  try {
+    const res = await fetch(`${base}models/registry.json`, { cache: "no-cache" });
+    const active = res.ok ? ((await res.json()) as { active?: unknown }).active : null;
+    return typeof active === "string" && active ? active : "v1";
+  } catch {
+    return "v1";
+  }
+}

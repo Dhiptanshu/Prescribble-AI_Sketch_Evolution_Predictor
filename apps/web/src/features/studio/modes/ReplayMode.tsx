@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { cutStrokes, inkLength } from "@prescribble/engine/pipeline";
 import type { Stroke } from "@prescribble/engine";
-import { MODEL_VERSION } from "../../../lib/engine";
+import { useEngine } from "../../../lib/engine";
 import type { ModeContext } from "./types";
 
 interface Sample { label: string; strokes: Stroke[] }
@@ -15,17 +15,20 @@ export function ReplayMode({ boardRef, predictNow, setLocked, setBanner, setTrut
   const [playing, setPlaying] = useState(false);
   const [summary, setSummary] = useState<{ ok: boolean; text: string } | null>(null);
   const run = useRef(0);
+  const engine = useEngine();
+  const version = engine.status === "ready" ? engine.version : null;
 
   useEffect(() => {
+    if (!version) return;
     let alive = true;
-    fetch(`${import.meta.env.BASE_URL}models/${MODEL_VERSION}/samples.json`)
+    fetch(`${import.meta.env.BASE_URL}models/${version}/samples.json`)
       .then((r) => r.json() as Promise<Sample[]>)
       .then((s) => alive && setSamples(s))
       .catch(() => alive && setSamples([]));
     // `run` is a cancellation counter, not a DOM ref: bumping it on unmount stops any playback still in flight.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     return () => { alive = false; run.current++; };
-  }, []);
+  }, [version]);
 
   const labels = useMemo(() => [...new Set((samples ?? []).map((s) => s.label))], [samples]);
 
