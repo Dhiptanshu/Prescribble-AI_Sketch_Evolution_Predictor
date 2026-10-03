@@ -18,12 +18,13 @@ from src.models.nets import VARIANTS, build
 
 
 @torch.no_grad()
-def evaluate(model, data, bs=512, dev="cpu"):
+def evaluate(model, data, bs=512, dev="cpu", per_class=False):
     """Top-1/Top-5 (and mean ghost BCE) per completion fraction."""
     model.eval()
     res = {}
     for frac, d in data.items():
         n, c1, c5, rl = len(d["y"]), 0, 0, 0.0
+        hit, seen = {}, {}
         for i in range(0, n, bs):
             sl = slice(i, i + bs)
             b = {k: v.to(dev) for k, v in as_float({k: v[sl] for k, v in d.items()}).items()}
@@ -31,10 +32,16 @@ def evaluate(model, data, bs=512, dev="cpu"):
             top5 = logits.topk(5, dim=1).indices
             y = b["y"]
             c1 += (top5[:, 0] == y).sum().item()
+            if per_class:
+                for cls, ok in zip(y.tolist(), (top5[:, 0] == y).tolist()):
+                    seen[cls] = seen.get(cls, 0) + 1
+                    hit[cls] = hit.get(cls, 0) + int(ok)
             c5 += (top5 == y[:, None]).any(1).sum().item()
             if recon is not None:
                 rl += F.binary_cross_entropy_with_logits(recon, b["target"], reduction="sum").item()
         res[frac] = {"top1": c1 / n, "top5": c5 / n, "ghost_bce": rl / n / 4096 if rl else None}
+        if per_class:
+            res[frac]["per_class_top1"] = [hit.get(c, 0) / seen[c] if seen.get(c) else None for c in range(max(seen) + 1)]
     return res
 
 
@@ -121,7 +128,7 @@ def main():
             w.writerows(rows)
 
     model.load_state_dict(torch.load(out / "best.pt", map_location=dev))
-    test = evaluate(model, eval_set("test"), dev=dev)
+    test = evaluate(model, eval_set("test"), dev=dev, per_class=True)
     with open(out / "results.json", "w") as f:
         json.dump({str(k): v for k, v in test.items()}, f, indent=2)
     print("TEST", {k: round(v["top5"], 3) for k, v in test.items()}, "(top5)", flush=True)

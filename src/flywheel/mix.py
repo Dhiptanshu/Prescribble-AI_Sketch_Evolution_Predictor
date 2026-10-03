@@ -29,4 +29,5 @@ def mix_user_drawings(sketches: list, labels: np.ndarray, path: Path, share: flo
     if not len(xs):
         raise ValueError("there are no user training drawings for the current classes in that file")
     reps = max(1, round(share / (1 - share) * len(sketches) / len(xs)))
-    return list(sketches) + xs * reps, np.concatenate([labels, np.tile(ys, reps)])
+    mixed = sketches.extended(xs, reps) if hasattr(sketches, "extended") else list(sketches) + xs * reps
+    return mixed, np.concatenate([labels, np.tile(ys, reps)])

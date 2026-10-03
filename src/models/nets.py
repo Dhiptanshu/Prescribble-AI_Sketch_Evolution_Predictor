@@ -18,19 +18,20 @@ def conv_block(cin, cout):
 
 
 class CNNEncoder(nn.Module):
-    """64x64 -> 256-d. Module III."""
-    out_dim = 256
+    """64x64 -> `out_dim`-d. Module III. `width` scales every channel count (1.5 = the wide variant used for the 345-class model)."""
 
-    def __init__(self):
+    def __init__(self, width: float = 1.0, out_dim: int = 256):
         super().__init__()
-        # Stride-2 stem + narrow early stages keep it fast on a CPU (~40M MACs per sketch).
+        self.out_dim = out_dim
+        c = [int(round(k * width)) for k in (16, 32, 64, 128)]
+        # Stride-2 stem + narrow early stages keep it fast on a CPU (~40M MACs per sketch at width 1).
         self.body = nn.Sequential(
-            nn.Conv2d(1, 16, 3, stride=2, padding=1, bias=False), nn.BatchNorm2d(16), nn.ReLU(inplace=True),  # 32
-            conv_block(16, 32), nn.MaxPool2d(2),    # 16
-            conv_block(32, 64), nn.MaxPool2d(2),    # 8
-            conv_block(64, 128), nn.MaxPool2d(2),   # 4
+            nn.Conv2d(1, c[0], 3, stride=2, padding=1, bias=False), nn.BatchNorm2d(c[0]), nn.ReLU(inplace=True),  # 32
+            conv_block(c[0], c[1]), nn.MaxPool2d(2),    # 16
+            conv_block(c[1], c[2]), nn.MaxPool2d(2),    # 8
+            conv_block(c[2], c[3]), nn.MaxPool2d(2),    # 4
         )
-        self.fc = nn.Sequential(nn.Flatten(), nn.Dropout(0.3), nn.Linear(128 * 4 * 4, 256), nn.ReLU(inplace=True))
+        self.fc = nn.Sequential(nn.Flatten(), nn.Dropout(0.3), nn.Linear(c[3] * 4 * 4, out_dim), nn.ReLU(inplace=True))
 
     def forward(self, x):
         return self.fc(self.body(x))
@@ -58,11 +59,11 @@ class ResNetEncoder(nn.Module):
 
 
 class LSTMEncoder(nn.Module):
-    """Stroke-point sequence -> 128-d, reading only the valid (unpadded) steps. Module IV."""
-    out_dim = 128
+    """Stroke-point sequence -> `hidden`-d, reading only the valid (unpadded) steps. Module IV."""
 
     def __init__(self, hidden: int = 128):
         super().__init__()
+        self.out_dim = hidden
         self.inp = nn.Sequential(nn.Linear(SEQ_FEATS, 64), nn.ReLU(inplace=True))
         self.lstm = nn.LSTM(64, hidden, num_layers=2, batch_first=True, dropout=0.2)
 
@@ -88,13 +89,14 @@ class GhostDecoder(nn.Module):
 
 
 class SketchNet(nn.Module):
-    def __init__(self, image: str | None = "cnn", sequence: bool = True, ghost: bool = True):
+    def __init__(self, image: str | None = "cnn", sequence: bool = True, ghost: bool = True, cnn_width: float = 1.0, cnn_out: int = 256,
+                 lstm_hidden: int = 128, head_hidden: int = 256):
         super().__init__()
-        self.img_enc = {"cnn": CNNEncoder, "resnet": ResNetEncoder, None: None}[image]
+        self.img_enc = {"cnn": lambda: CNNEncoder(cnn_width, cnn_out), "resnet": ResNetEncoder, None: None}[image]
         self.img_enc = self.img_enc() if self.img_enc else None
-        self.seq_enc = LSTMEncoder() if sequence else None
+        self.seq_enc = LSTMEncoder(lstm_hidden) if sequence else None
         dim = (self.img_enc.out_dim if self.img_enc else 0) + (self.seq_enc.out_dim if self.seq_enc else 0)
-        self.head = nn.Sequential(nn.Linear(dim, 256), nn.ReLU(inplace=True), nn.Dropout(0.3), nn.Linear(256, NUM_CLASSES))
+        self.head = nn.Sequential(nn.Linear(dim, head_hidden), nn.ReLU(inplace=True), nn.Dropout(0.3), nn.Linear(head_hidden, NUM_CLASSES))
         self.ghost = GhostDecoder(dim) if ghost else None
 
     def forward(self, img, seq, length):
@@ -115,6 +117,8 @@ VARIANTS = {
     "fusion": dict(image="cnn", sequence=True, ghost=False),
     "fusion_ghost": dict(image="cnn", sequence=True, ghost=True),
     "resnet_ghost": dict(image="resnet", sequence=True, ghost=True),
+    # The 345-class model: wider CNN, bigger sequence encoder and classifier. Same inputs and outputs, so the apps need no change.
+    "fusion_ghost_xl": dict(image="cnn", sequence=True, ghost=True, cnn_width=1.5, cnn_out=384, lstm_hidden=256, head_hidden=512),
 }
 
 

@@ -7,10 +7,15 @@ import torch
 from torch.utils.data import Dataset
 
 from src.common import DATA_DIR, EVAL_FRACS
+from src.data.packed import PackedSketches, is_packed, load_labels
 from src.data.partial import augment, cut_prefix, render, to_seq
 
 
 def load_splits() -> dict:
+    """{"train"|"val"|"test": (sketches, labels)}. Large class sets are stored packed (src/data/packed.py), small ones as a pickle."""
+    packed = DATA_DIR / "packed"
+    if is_packed(packed):
+        return {s: (PackedSketches.load(packed, s), load_labels(packed, s)) for s in ("train", "val", "test")}
     with open(DATA_DIR / "sketches.pkl", "rb") as f:
         return pickle.load(f)
 
@@ -76,14 +81,34 @@ def as_float(d: dict) -> dict:
     return {**d, "img": d["img"].float() / 255.0, "target": d["target"].float() / 255.0}
 
 
-def eval_set(split: str, fracs=EVAL_FRACS) -> dict:
-    """{frac: tensors}, cached on disk after the first build (parallel)."""
+EVAL_BYTES_PER_SKETCH = 10_700         # an evaluation sample as stored: raster + ghost target (uint8) and the stroke sequence (float32)
+MAX_RESIDENT_BYTES = 3_000_000_000      # bigger evaluation sets are streamed one completion fraction at a time instead of held in memory
+
+
+class EvalStream:
+    """The same {fraction: tensors} view as eval_set, built on demand: each fraction is rendered, used and freed (nothing is cached)."""
+
+    def __init__(self, sketches, labels, fracs):
+        self.sketches, self.labels, self.fracs = sketches, labels, fracs
+
+    def items(self):
+        import multiprocessing as mp
+
+        with mp.Pool(4) as pool:
+            for f in self.fracs:
+                yield f, build_eval_tensors(self.sketches, self.labels, f, pool)
+
+
+def eval_set(split: str, fracs=EVAL_FRACS):
+    """{frac: tensors}, cached on disk after the first build (parallel). A set too big to hold in memory comes back as an EvalStream."""
     import multiprocessing as mp
 
+    sk, lb = load_splits()[split]
+    if len(lb) * len(fracs) * EVAL_BYTES_PER_SKETCH > MAX_RESIDENT_BYTES:
+        return EvalStream(sk, lb, fracs)
     cache = DATA_DIR / f"eval_{split}.pt"
     if cache.exists():
         return torch.load(cache, map_location="cpu")
-    sk, lb = load_splits()[split]
     with mp.Pool(4) as pool:
         data = {f: build_eval_tensors(sk, lb, f, pool) for f in fracs}
     torch.save(data, cache)
