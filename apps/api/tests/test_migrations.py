@@ -11,6 +11,7 @@ def test_migrations_upgrade_and_downgrade(tmp_path):
     assert {"users", "drawings", "daily_challenges", "challenge_attempts", "api_keys", "api_usage", "rooms", "room_members", "room_rounds", "round_submissions"} <= set(inspect(engine).get_table_names())
     cols = {c["name"] for c in inspect(engine).get_columns("users")}
     assert {"email", "password_hash", "display_name", "is_admin", "consent_training", "show_on_leaderboard", "created_at"} <= cols
+    assert {"label_confirmed", "input_type"} <= {c["name"] for c in inspect(engine).get_columns("drawings")}
     fks = inspect(engine).get_foreign_keys("drawings")
     assert fks and fks[0]["referred_table"] == "users" and fks[0]["options"].get("ondelete") == "CASCADE"
     command.downgrade(alembic_config(url), "base")

@@ -1,7 +1,7 @@
 """ORM models. Keep one class per table; relationships are added as features land."""
 from datetime import date, datetime, timezone
 
-from sqlalchemy import JSON, Boolean, Date, DateTime, Float, ForeignKey, Index, Integer, String, UniqueConstraint, true
+from sqlalchemy import JSON, Boolean, Date, DateTime, Float, ForeignKey, Index, Integer, String, UniqueConstraint, false, true
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -42,7 +42,9 @@ class Drawing(Base):
     ai_guess: Mapped[str] = mapped_column(String(40))                # the AI's final top-1 guess
     ai_confidence: Mapped[float] = mapped_column(Float)
     recognised_at: Mapped[float | None] = mapped_column(Float)       # fraction of the ink from which the AI's top-1 matched the label (client-reported)
-    mode: Mapped[str] = mapped_column(String(16), default="free")    # free | challenge
+    mode: Mapped[str] = mapped_column(String(16), default="free")    # free | challenge | teach (drawn on request to teach the AI)
+    label_confirmed: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())   # the person checked the label (never just the AI's guess)
+    input_type: Mapped[str | None] = mapped_column(String(8))        # pointer used for the first stroke: mouse | touch | pen (client-reported)
     model_version: Mapped[str] = mapped_column(String(16))
 
     strokes: Mapped[list] = mapped_column(JSON)                      # [[[x, y], ...], ...]
