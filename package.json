@@ -3,12 +3,26 @@
   "private": true,
   "version": "0.1.0",
   "description": "Prescribble: the AI that guesses your drawing before you finish it.",
-  "workspaces": ["packages/*", "apps/web"],
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/web"
+  ],
   "scripts": {
     "dev:web": "npm run dev -w @prescribble/web",
     "build:web": "npm run build -w @prescribble/web",
     "test": "npm run test --workspaces --if-present",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint ."
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "eslint": "^9.14.0",
+    "@eslint/js": "^9.14.0",
+    "typescript-eslint": "^8.13.0",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "globals": "^15.12.0"
+  }
 }
