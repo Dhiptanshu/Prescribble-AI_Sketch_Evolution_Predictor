@@ -15,4 +15,5 @@ apps/web/public/ort/
 apps/web/public/models/
 *.db
 .env
-demo/models/
+test-results/
+playwright-report/

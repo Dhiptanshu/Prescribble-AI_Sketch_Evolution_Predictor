@@ -9,7 +9,6 @@ dist
 notebooks
 report
 kaggle
-demo
 apps/web/dist
 apps/web/public/ort
 apps/web/public/models

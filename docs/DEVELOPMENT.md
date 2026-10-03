@@ -25,6 +25,7 @@ cd apps/api && python -m pytest -q            # API: auth, validation, rate limi
 npm test                                      # engine golden tests (vs the Python pipeline) + web unit tests
 npm run typecheck
 npm run lint                                  # ESLint (typescript-eslint + react-hooks)
+PW_CHANNEL=msedge npm run test:e2e            # Playwright smoke tests in an installed browser (chrome also works); CI: npx playwright install chromium
 ```
 Regenerate the engine's golden fixtures after changing the Python pipeline: `python scripts/make_engine_fixtures.py`.
 

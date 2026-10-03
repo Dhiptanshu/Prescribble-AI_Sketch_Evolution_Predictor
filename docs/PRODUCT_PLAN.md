@@ -32,7 +32,7 @@ apps/api/           FastAPI service: auth, drawings, challenges, leaderboard, AP
 models/             versioned model artefacts (onnx + meta + results) served as immutable static files
 deploy/             Dockerfiles, docker-compose, env templates
 docs/               plans, API docs, ADRs
-demo/               legacy standalone offline demo (kept until the web app's guest mode replaces it)
+scripts/            bundle (lab), bundle self-check, fixtures, notebooks, dataset staging
 ```
 
 - **API:** Python 3.11, FastAPI, SQLAlchemy 2 + Alembic, SQLite in dev and Postgres in production, bcrypt, JWT in an httpOnly cookie, hashed API keys, rate limiting, structured logging, `/healthz` and `/metrics`.
@@ -78,7 +78,9 @@ Score = `round((1 - fraction) * 100)`; a drawing the AI never gets scores 0. Pla
 - Dockerfile (multi-stage, non-root, healthcheck) and compose (SQLite volume, optional Postgres profile). Compose validated; **the image has not been built yet** because Docker Desktop was not running.
 - Lab bundle from the new web app (`scripts/make_web_bundle.py`, ~20 MB). Verified both ways in a real browser: API single-origin and the static server with no backend (offline mode).
 
-**Left over:** build the Docker image once Docker Desktop is running, a Playwright smoke test, retire the legacy `demo/` after one lab rehearsal.
+**Since then:** legacy `demo/` retired (the web app's offline mode and `scripts/make_web_bundle.py` replace it; `scripts/verify_web_bundle.py` self-checks the bundle; runbook in `docs/LAB.md`). Playwright smoke suite added: 11 tests in real Edge across the full product (API serving the app) and offline mode (static server, no backend). Model artefacts now live only in `models/<version>/` (`--version` flag on the export scripts).
+
+**Left over:** build the Docker image once Docker Desktop is running; one real lab rehearsal when possible (the lab runbook lists what is untested).
 
 **Next:** Phase 2 (save drawings, gallery, stats, share links, replay export).
 
