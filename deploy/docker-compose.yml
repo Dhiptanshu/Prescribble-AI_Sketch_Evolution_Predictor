@@ -8,6 +8,8 @@ services:
       PRESCRIBBLE_SECRET_KEY: ${SECRET_KEY:?set SECRET_KEY (32+ random characters) in deploy/.env}
       PRESCRIBBLE_DATABASE_URL: ${DATABASE_URL:-sqlite:////data/prescribble.db}
       PRESCRIBBLE_COOKIE_SECURE: ${COOKIE_SECURE:-false}   # set true behind HTTPS
+      PRESCRIBBLE_TRUSTED_ORIGINS: ${TRUSTED_ORIGINS:-[]}  # JSON list, e.g. ["https://prescribble.example"], only if a proxy rewrites the Host header
+      FORWARDED_ALLOW_IPS: ${FORWARDED_ALLOW_IPS:-127.0.0.1}   # the reverse proxy's address, so the real client IP reaches the rate limits
     volumes: ["appdata:/data"]
     restart: unless-stopped
 

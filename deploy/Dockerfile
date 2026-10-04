@@ -31,4 +31,6 @@ ENV PRESCRIBBLE_ENV=prod \
 VOLUME /data
 EXPOSE 8100
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s CMD python -c "import urllib.request as u; u.urlopen('http://localhost:8100/healthz', timeout=4)"
-CMD ["uvicorn", "app.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8100"]
+# one process on purpose: live classroom rooms keep their sockets in memory. --ws-max-size caps a WebSocket message at 64 KB (clients only ever send a short token).
+# Behind a reverse proxy set FORWARDED_ALLOW_IPS to the proxy's address, or every visitor shares the proxy's IP and the per-IP limits (sign-in, joins) hit everyone at once.
+CMD ["uvicorn", "app.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8100", "--ws-max-size", "65536"]
