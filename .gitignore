@@ -21,3 +21,5 @@ playwright-report/
 CLAUDE.md
 /yolov8n.pt
 /yolov8n.yaml
+*.db-shm
+*.db-wal
