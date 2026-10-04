@@ -101,6 +101,7 @@ def test_restore_puts_the_data_back_and_keeps_the_old_file(live, tmp_path):
     backups.restore(target, url)
     assert rows(db_file, "users") == 1 and rows(db_file, "drawings") == 1
     assert rows(db_file.with_name(db_file.name + ".before-restore"), "users") == 0           # the file that was replaced is still there
+    assert not db_file.with_name(db_file.name + "-wal").exists()                              # and no write-ahead-log leftovers of the old database remain
 
 
 def test_the_command_line_backs_up_and_restores(live, tmp_path, monkeypatch, capsys):

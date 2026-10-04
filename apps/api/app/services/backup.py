@@ -71,5 +71,7 @@ def restore(backup_file: Path, database_url: str) -> Path:
         raise BackupError("restore works on SQLite files only")
     if path.exists():
         path.replace(path.with_name(path.name + ".before-restore"))
+    for side in ("-wal", "-shm"):                      # write-ahead-log leftovers of the replaced database must not be replayed onto the restored one
+        path.with_name(path.name + side).unlink(missing_ok=True)
     path.write_bytes(backup_file.read_bytes())
     return path
