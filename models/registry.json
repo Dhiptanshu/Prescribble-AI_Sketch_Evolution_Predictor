@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "active": "v1",
+  "active": "v3",
   "versions": {
     "v1": {
       "class_set": "v1",
@@ -30,6 +30,21 @@
       "metrics": {
         "quickdraw_test_top5_at_30": 0.7970666666666667,
         "quickdraw_test_top1_at_100": 0.7882666666666667
+      }
+    },
+    "v3": {
+      "class_set": "v3",
+      "n_classes": 345,
+      "sha256": "b800e04774749977288518e06e2ffd6c8cb6675caec34ecc8c21ad260e226c17",
+      "created": "2026-10-04T15:03:40+00:00",
+      "parent": "v2",
+      "architecture": "fusion_ghost_xl",
+      "size_mb": 34.499929,
+      "latency_ms": 12.02212726999278,
+      "notes": "all 345 QuickDraw categories, wide CNN + LSTM + ghost decoder, 8.3 M training drawings, trained on a Kaggle GPU with fresh samples every epoch",
+      "metrics": {
+        "quickdraw_test_top5_at_30": 0.6226763285024155,
+        "quickdraw_test_top1_at_100": 0.7201449275362319
       }
     }
   },
@@ -124,6 +139,81 @@
       "event": "rolled_back",
       "version": "v1",
       "from": "v2"
+    },
+    {
+      "at": "2026-10-04T15:03:40+00:00",
+      "event": "registered",
+      "version": "v3"
+    },
+    {
+      "at": "2026-10-04T15:28:18+00:00",
+      "event": "promoted",
+      "version": "v3",
+      "previous": "v1",
+      "gate": "passed",
+      "report": {
+        "shared_classes": 30,
+        "dropped_classes": [],
+        "fractions": [
+          0.2,
+          0.3,
+          0.5
+        ],
+        "tolerance": 0.01,
+        "quickdraw": {
+          "n": 900,
+          "active_top5": 0.9277777777777777,
+          "candidate_top5": 0.9537037037037037,
+          "delta": 0.02592592592592602,
+          "candidate_unmasked_top5": 0.6614814814814814,
+          "candidate_unmasked_n": 900,
+          "ok": true,
+          "by_fraction": {
+            "active": {
+              "0.2": {
+                "top1": 0.5733333333333334,
+                "top5": 0.8877777777777778
+              },
+              "0.3": {
+                "top1": 0.6777777777777778,
+                "top5": 0.93
+              },
+              "0.5": {
+                "top1": 0.7588888888888888,
+                "top5": 0.9655555555555555
+              }
+            },
+            "candidate": {
+              "0.2": {
+                "top1": 0.6011111111111112,
+                "top5": 0.9166666666666666
+              },
+              "0.3": {
+                "top1": 0.7177777777777777,
+                "top5": 0.9566666666666667
+              },
+              "0.5": {
+                "top1": 0.8244444444444444,
+                "top5": 0.9877777777777778
+              }
+            },
+            "candidate_unmasked": {
+              "0.2": {
+                "top1": 0.24222222222222223,
+                "top5": 0.5422222222222223
+              },
+              "0.3": {
+                "top1": 0.35333333333333333,
+                "top5": 0.6811111111111111
+              },
+              "0.5": {
+                "top1": 0.48444444444444446,
+                "top5": 0.7611111111111111
+              }
+            }
+          }
+        }
+      }
     }
   ]
 }

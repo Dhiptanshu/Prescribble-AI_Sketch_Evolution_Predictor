@@ -1,7 +1,6 @@
 {
   "candidate": "v2",
   "active_before": "v1",
-  "tolerance": 0.01,
   "comparison": {
     "passed": true,
     "verdict": {
@@ -18,7 +17,8 @@
         "active_top5": 0.9277777777777777,
         "candidate_top5": 0.918888888888889,
         "delta": -0.008888888888888724,
-        "candidate_unmasked_top5": 0.7935555555555555,
+        "candidate_unmasked_top5": 0.7796296296296296,
+        "candidate_unmasked_n": 900,
         "ok": true,
         "by_fraction": {
           "active": {
@@ -51,21 +51,20 @@
           },
           "candidate_unmasked": {
             "0.2": {
-              "top1": 0.318,
-              "top5": 0.701
+              "top1": 0.33666666666666667,
+              "top5": 0.6822222222222222
             },
             "0.3": {
-              "top1": 0.4583333333333333,
-              "top5": 0.801
+              "top1": 0.4666666666666667,
+              "top5": 0.7855555555555556
             },
             "0.5": {
-              "top1": 0.5763333333333334,
-              "top5": 0.8786666666666667
+              "top1": 0.56,
+              "top5": 0.8711111111111111
             }
           }
         }
       }
     }
-  },
-  "passed": true
+  }
 }
