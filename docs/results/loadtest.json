@@ -1,0 +1,49 @@
+{
+  "model": "v3",
+  "results": [
+    {
+      "scenario": "predict API, 16 concurrent callers",
+      "requests": 397,
+      "errors": 0,
+      "seconds": 20.13,
+      "per_second": 19.7,
+      "p50_ms": 253,
+      "p95_ms": 457,
+      "p99_ms": 10677,
+      "max_ms": 13279,
+      "mean_ms": 524
+    },
+    {
+      "scenario": "classroom: 60 simultaneous submissions",
+      "requests": 60,
+      "errors": 0,
+      "seconds": 20.14,
+      "per_second": 3.0,
+      "p50_ms": 11597,
+      "p95_ms": 20100,
+      "p99_ms": 20100,
+      "max_ms": 20100,
+      "mean_ms": 13682
+    },
+    {
+      "scenario": "classroom live pushes",
+      "students": 60,
+      "join_seconds": 0.64,
+      "round_start_to_all_sockets_ms": 688,
+      "teacher_saw_all_handins_seconds": 20.19,
+      "handins_seen": 60
+    },
+    {
+      "scenario": "daily challenge: 50 simultaneous attempts",
+      "requests": 50,
+      "errors": 0,
+      "seconds": 7.48,
+      "per_second": 6.7,
+      "p50_ms": 4877,
+      "p95_ms": 7346,
+      "p99_ms": 7450,
+      "max_ms": 7450,
+      "mean_ms": 4594
+    }
+  ]
+}
