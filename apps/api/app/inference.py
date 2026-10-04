@@ -18,7 +18,14 @@ from app.services.daily import challenge_classes
 from app.services.registry import active_version
 from app.services.scoring import FRACTIONS, Step
 
-_ROOT_CANDIDATES = (Path(__file__).resolve().parents[3], Path("/app"))
+def root_candidates(here: Path) -> tuple[Path, ...]:
+    """Where the training-pipeline package (`src`) may live: the repository root when running from a checkout, /app inside the Docker image.
+    (From apps/api/app/inference.py the root is four folders up; inside the image the file is /app/app/inference.py, which has no fourth parent.)"""
+    parents = here.resolve().parents
+    return tuple(p for p in ((parents[3] if len(parents) > 3 else None), Path("/app")) if p is not None)
+
+
+_ROOT_CANDIDATES = root_candidates(Path(__file__))
 
 
 def _load_pipeline(ml_root: Path | None):
