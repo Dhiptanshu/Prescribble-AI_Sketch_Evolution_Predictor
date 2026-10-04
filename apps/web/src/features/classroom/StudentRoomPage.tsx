@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { DrawingBoard } from "../../components/DrawingBoard";
-import { GhostLayer } from "../../components/GhostLayer";
 import { GuessPanel } from "../../components/GuessPanel";
 import { ApiError } from "../../lib/api";
 import { useEngine } from "../../lib/engine";
@@ -89,7 +88,6 @@ export function StudentRoomPage() {
         )}
         <DrawingBoard
           ref={session.boardRef} onChange={session.onChange} locked={locked}
-          underlay={<GhostLayer prediction={loop.last} enabled />}
           hint={!model ? "Loading the model…" : drawing ? `Draw: ${s.round?.target}.` : "Wait for the next round."}
         />
         <div className="toolbar">

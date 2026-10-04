@@ -10,7 +10,7 @@ export { mount };
 export type { MountOptions, WidgetHandle };
 
 /**
- * <prescribble-canvas size="360" theme="auto" no-guesses no-ghost></prescribble-canvas>
+ * <prescribble-canvas size="360" theme="auto" no-guesses></prescribble-canvas>
  * Fires a `guess` event ({ detail: { top5, ink, strokes } }) and exposes clear(), undo() and getStrokes().
  */
 class PrescribbleCanvas extends HTMLElement {
@@ -23,7 +23,6 @@ class PrescribbleCanvas extends HTMLElement {
       size: clampSize(this.getAttribute("size")),
       theme: theme === "light" || theme === "dark" || theme === "auto" ? (theme as ThemeOption) : "auto",
       showGuesses: !this.hasAttribute("no-guesses"),
-      showGhost: !this.hasAttribute("no-ghost"),
       assetsBase: this.getAttribute("assets-base") ?? undefined,
       onGuess: (detail) => this.dispatchEvent(new CustomEvent("guess", { detail, bubbles: true, composed: true })),
       onReady: (detail) => this.dispatchEvent(new CustomEvent("ready", { detail, bubbles: true, composed: true })),

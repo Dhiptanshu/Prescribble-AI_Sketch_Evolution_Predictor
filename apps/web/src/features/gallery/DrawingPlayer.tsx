@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { IMG, cutStrokes } from "@prescribble/engine/pipeline";
+import { cutStrokes } from "@prescribble/engine/pipeline";
 import type { Stroke } from "@prescribble/engine/pipeline";
 import type { Prediction, SketchModel } from "@prescribble/engine";
-import { ghostPixels } from "@prescribble/engine/ghost";
 import { cssVar, paintStrokes } from "../../lib/paint";
 import { canRecord, recordCanvas } from "./recordVideo";
 
@@ -13,12 +12,11 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 interface Frame { cut: Stroke[]; pred: Prediction | null; frac: number }
 
 /**
- * Replays a saved drawing stroke by stroke through the real model (nothing is recorded or faked), with the ghost and a live caption.
+ * Replays a saved drawing stroke by stroke through the real model (nothing is recorded or faked), with a live caption.
  * The same canvas can be exported as a .webm video.
  */
 export function DrawingPlayer({ strokes, model, title, exportName }: { strokes: Stroke[]; model: SketchModel; title: string; exportName: string }) {
   const canvas = useRef<HTMLCanvasElement>(null);
-  const ghostCanvas = useRef<HTMLCanvasElement | null>(null);
   const frame = useRef<Frame>({ cut: strokes, pred: null, frac: 1 });
   const token = useRef(0);                                  // bumped to cancel playback or stale seeks
   const [frac, setFrac] = useState(1);
@@ -31,14 +29,6 @@ export function DrawingPlayer({ strokes, model, title, exportName }: { strokes: 
     const ctx = c.getContext("2d")!, { cut, pred, frac: f } = frame.current;
     ctx.fillStyle = cssVar("--paper", "#0f1220");
     ctx.fillRect(0, 0, SIZE, SIZE);
-    if (pred) {
-      const g = (ghostCanvas.current ??= Object.assign(document.createElement("canvas"), { width: IMG, height: IMG }));
-      const gctx = g.getContext("2d")!, image = gctx.createImageData(IMG, IMG);
-      image.data.set(ghostPixels(pred));
-      gctx.putImageData(image, 0, 0);
-      ctx.imageSmoothingEnabled = true;
-      ctx.drawImage(g, 0, 0, SIZE, SIZE);
-    }
     paintStrokes(ctx, cut, SIZE, 9);
     // caption: the AI's current best guess, as it was at this moment of the drawing
     ctx.fillStyle = "rgba(10, 12, 24, .72)";

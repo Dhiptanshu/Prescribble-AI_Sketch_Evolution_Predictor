@@ -1,6 +1,5 @@
 import { SketchModel, type Prediction } from "@prescribble/engine";
-import { ghostPixels } from "@prescribble/engine/ghost";
-import { FRAME, IMG, inkLength, type Stroke } from "@prescribble/engine/pipeline";
+import { FRAME, inkLength, type Stroke } from "@prescribble/engine/pipeline";
 import { STYLES } from "./styles";
 import { assetsBaseFrom, clampSize, resolveTheme, resolveVersion, toGuesses, type Guess, type ThemeOption } from "./util";
 
@@ -11,7 +10,6 @@ export interface MountOptions {
   size?: number;
   theme?: ThemeOption;
   showGuesses?: boolean;
-  showGhost?: boolean;
   /** Where models/ and ort/ are served from. Default: the host that served this script. */
   assetsBase?: string;
   /** Model version folder under models/. Default: the live version named in models/registry.json (so a promoted model reaches every page). */
@@ -56,7 +54,7 @@ export function mount(target: string | Element, options: MountOptions = {}): Wid
   const host = typeof target === "string" ? document.querySelector(target) : target;
   if (!host) throw new Error(`Prescribble: no element matches "${String(target)}"`);
   if (host.shadowRoot) throw new Error("Prescribble: this element already has a widget mounted on it");
-  const opts = { showGuesses: true, showGhost: true, ...options };
+  const opts = { showGuesses: true, ...options };
   const base = assetsBaseFrom(scriptSource.src, opts.assetsBase);
 
   const shadow = host.attachShadow({ mode: "open" });
@@ -71,10 +69,9 @@ export function mount(target: string | Element, options: MountOptions = {}): Wid
   media.addEventListener("change", onMedia);
 
   const frame = el("div", "frame");
-  const ghostCanvas = el("canvas", "ghost"); ghostCanvas.width = IMG; ghostCanvas.height = IMG; ghostCanvas.setAttribute("aria-hidden", "true");
   const canvas = el("canvas", "draw"); canvas.setAttribute("role", "img"); canvas.setAttribute("aria-label", "Drawing canvas: draw and the AI guesses what it is");
   const hint = el("div", "hint", "Loading the model…");
-  frame.append(ghostCanvas, canvas, hint);
+  frame.append(canvas, hint);
   root.append(frame);
 
   const rows: { nm: HTMLElement; fill: HTMLElement; pc: HTMLElement }[] = [];
@@ -133,9 +130,6 @@ export function mount(target: string | Element, options: MountOptions = {}): Wid
         r.nm.textContent = g?.name ?? "–"; r.fill.style.width = g ? `${(g.p * 100).toFixed(1)}%` : "0%"; r.pc.textContent = g ? `${Math.round(g.p * 100)}%` : "";
       });
     }
-    const gctx = ghostCanvas.getContext("2d")!;
-    gctx.clearRect(0, 0, IMG, IMG);
-    if (p && opts.showGhost) { const img = gctx.createImageData(IMG, IMG); img.data.set(ghostPixels(p)); gctx.putImageData(img, 0, 0); }
   };
 
   // latest drawing wins: never queue stale predictions

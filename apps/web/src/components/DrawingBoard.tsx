@@ -18,14 +18,12 @@ export interface BoardHandle {
 interface Props {
   onChange: (strokes: Stroke[], phase: BoardPhase) => void;
   locked?: boolean;
-  /** Rendered between the paper and the user's ink (the ghost layer). */
-  underlay?: React.ReactNode;
   hint?: string;
   progress?: number;
 }
 
 /** Drawing surface. Strokes live in the model's fixed 0..255 frame regardless of the canvas's on-screen size. */
-export const DrawingBoard = forwardRef<BoardHandle, Props>(function DrawingBoard({ onChange, locked, underlay, hint, progress }, ref) {
+export const DrawingBoard = forwardRef<BoardHandle, Props>(function DrawingBoard({ onChange, locked, hint, progress }, ref) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const strokes = useRef<Stroke[]>([]);
   const drawing = useRef(false);
@@ -86,7 +84,6 @@ export const DrawingBoard = forwardRef<BoardHandle, Props>(function DrawingBoard
 
   return (
     <div className="board">
-      {underlay}
       <canvas
         ref={canvas}
         className="draw"

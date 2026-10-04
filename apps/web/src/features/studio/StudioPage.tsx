@@ -1,7 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { ConfidenceChart } from "../../components/ConfidenceChart";
 import { DrawingBoard } from "../../components/DrawingBoard";
-import { GhostLayer } from "../../components/GhostLayer";
 import { GuessPanel } from "../../components/GuessPanel";
 import { useEngine } from "../../lib/engine";
 import { ChallengeMode } from "./modes/ChallengeMode";
@@ -25,7 +24,6 @@ export function StudioPage() {
   const { boardRef, meta, revision, onChange, getStrokes, getDurationMs, getInputType } = useDrawSession(loop);
 
   const [mode, setMode] = useState<Mode>("free");
-  const [ghost, setGhost] = useState(true);
   const [locked, setLocked] = useState(false);
   const [truth, setTruth] = useState<string | null>(null);
   const [progress, setProgress] = useState<number | undefined>();
@@ -42,7 +40,7 @@ export function StudioPage() {
     classes: model?.classes ?? [], last: loop.last, boardRef, predictNow: loop.run,
     setLocked, setBanner, setTruth, setProgress,
   };
-  const freeBanner = "Draw anything from the list. The purple ghost is the model’s own prediction of how your drawing will end.";
+  const freeBanner = "Draw anything from the list. The AI updates its guesses after every stroke.";
 
   return (
     <div className="studio">
@@ -57,17 +55,12 @@ export function StudioPage() {
           ref={boardRef}
           onChange={onChange}
           locked={locked || !model}
-          underlay={<GhostLayer prediction={loop.last} enabled={ghost} />}
           hint={model ? "Draw big, anywhere in the box. The AI starts guessing after your first stroke." : "Loading the model…"}
           progress={progress}
         />
         <div className="toolbar">
           <button className="btn" onClick={() => boardRef.current?.undo()} disabled={!meta.strokes || mode === "replay"}>Undo stroke</button>
           <button className="btn" onClick={() => boardRef.current?.clear()} disabled={mode === "replay"}>Clear</button>
-          <label className="switch">
-            <input type="checkbox" checked={ghost} onChange={(e) => setGhost(e.target.checked)} />
-            <i /> Ghost completion
-          </label>
           <span className="spacer" />
           <span className="meta">{meta.strokes} stroke{meta.strokes === 1 ? "" : "s"} · {meta.ink} px ink</span>
         </div>

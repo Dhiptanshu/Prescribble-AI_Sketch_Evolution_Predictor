@@ -12,7 +12,6 @@ const WIDGET_OPTIONS: [string, string, string][] = [
   ["size", "360", "Width and height in pixels (200 to 800)."],
   ["theme", '"auto"', '"light", "dark" or "auto" (follows the visitor).'],
   ["showGuesses", "true", "Show the Top-5 list under the canvas."],
-  ["showGhost", "true", "Paint the model's prediction of how the drawing will end."],
   ["onGuess", "-", "Called after every stroke: { top5: [{ label, probability }], ink, strokes }."],
   ["onReady / onError", "-", "Model loaded, or something failed (network, unsupported browser)."],
 ];

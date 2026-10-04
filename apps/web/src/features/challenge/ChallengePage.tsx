@@ -2,7 +2,6 @@ import { useCallback, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { DrawingBoard } from "../../components/DrawingBoard";
-import { GhostLayer } from "../../components/GhostLayer";
 import { GuessPanel } from "../../components/GuessPanel";
 import { ApiError } from "../../lib/api";
 import { useAuth } from "../../lib/auth";
@@ -91,7 +90,6 @@ export function ChallengePage() {
         </div>
         <DrawingBoard
           ref={session.boardRef} onChange={session.onChange} locked={locked}
-          underlay={<GhostLayer prediction={loop.last} enabled />}
           hint={model ? `Draw: ${t.target}. The AI starts guessing after your first stroke.` : "Loading the model…"}
         />
         <div className="toolbar">

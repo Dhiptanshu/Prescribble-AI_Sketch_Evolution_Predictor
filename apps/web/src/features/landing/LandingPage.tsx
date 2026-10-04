@@ -50,8 +50,8 @@ export function LandingPage() {
         <p className="sub">Two views of every drawing, fused: how it looks and the order it was drawn in.</p>
         <div className="grid3">
           <div className="card feature"><h3>Reads strokes, not just pixels</h3><p>A convolutional network sees the shape; an LSTM follows the pen. Together they recognise objects from the first few strokes.</p></div>
-          <div className="card feature"><h3>Paints the ending</h3><p>A decoder predicts where the remaining ink will go. When the AI is unsure, the ghost blurs: its uncertainty made visible.</p></div>
-          <div className="card feature"><h3>Private by design</h3><p>The model runs on your device in about 20 ms. Your drawings are only stored if you choose to save them.</p></div>
+          <div className="card feature"><h3>Guesses early</h3><p>The Top-5 list updates after every stroke, so you can watch the AI change its mind as the drawing takes shape.</p></div>
+          <div className="card feature"><h3>Private by design</h3><p>The model runs on your device, in a few dozen milliseconds per guess. Your drawings are only stored if you choose to save them.</p></div>
         </div>
       </section>
 

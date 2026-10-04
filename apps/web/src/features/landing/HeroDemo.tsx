@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { cutStrokes } from "@prescribble/engine/pipeline";
 import type { Stroke } from "@prescribble/engine";
 import { DrawingBoard, type BoardHandle } from "../../components/DrawingBoard";
-import { GhostLayer } from "../../components/GhostLayer";
 import { GuessPanel } from "../../components/GuessPanel";
 import { useEngine } from "../../lib/engine";
 import { usePredictionLoop } from "../studio/usePredictionLoop";
@@ -49,7 +48,7 @@ export function HeroDemo() {
         <h2>Live: a real sketch, drawn live</h2>
         <span className="meta">{truth ? `ground truth: ${truth}` : "loading…"}</span>
       </div>
-      <DrawingBoard ref={board} onChange={() => {}} locked underlay={<GhostLayer prediction={last} enabled />} progress={frac} />
+      <DrawingBoard ref={board} onChange={() => {}} locked progress={frac} />
       <div style={{ marginTop: 14 }}><GuessPanel prediction={last} truth={truth} /></div>
     </div>
   );

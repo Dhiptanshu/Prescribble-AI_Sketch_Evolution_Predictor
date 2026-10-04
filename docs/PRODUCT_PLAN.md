@@ -12,7 +12,7 @@ One recognition engine, three surfaces:
 | **Developer platform** | Game / ed-tech developers | REST API + embeddable widget: "guess as the user draws" as a service |
 | **Classrooms** | Teachers | Live rooms where students draw and the AI races them |
 
-Differentiators (all real, none mocked): early recognition from 10–30% of the ink, a ghost of the predicted ending, per-user "recognisability" stats, privacy by default (the model runs in the browser; strokes are stored only if the user saves them).
+Differentiators (all real, none mocked): early recognition from 10–30% of the ink, per-user "recognisability" stats, privacy by default (the model runs in the browser; strokes are stored only if the user saves them).
 
 ## 2. Principles
 1. **Privacy first.** Inference runs client-side. The server stores a drawing only when the user saves or submits it. Training use is opt-in, off by default. Account data export and delete are built in.
@@ -66,7 +66,7 @@ Score = `round((1 - fraction) * 100)`; a drawing the AI never gets scores 0. Pla
 - Monorepo layout: `apps/api`, `apps/web`, `packages/engine`, `models/v1`.
 - **API:** config (prod guard on the secret), SQLAlchemy models, Alembic migration (up/down tested), argon2 password hashing, JWT in an httpOnly cookie, register / login / logout / profile / export / delete-account, per-IP auth rate limit, one error shape, request ids, `/healthz`. **16 tests pass.**
 - **Engine (TypeScript):** stroke pipeline + ONNX Runtime Web wrapper. **Golden tests against the Python training pipeline pass** (sequence features identical on real sketches).
-- **Web (React + TS + Vite):** landing page with a live hero demo (real held-out sketch through the real model, stats read from the model's measured results), Studio (free draw, AI challenge, real-sketch replay, ghost, confidence timeline), register / login / sign-out, light and dark themes, offline mode when no backend is reachable. Production build 89 kB gzipped; type-check clean; 6 unit tests pass.
+- **Web (React + TS + Vite):** landing page with a live hero demo (real held-out sketch through the real model, stats read from the model's measured results), Studio (free draw, AI challenge, real-sketch replay, confidence timeline), register / login / sign-out, light and dark themes, offline mode when no backend is reachable. Production build 89 kB gzipped; type-check clean; 6 unit tests pass.
 - Checked by hand in a real browser: Studio predictions identical to the POC, registration, session persistence across reloads, sign-out.
 
 **Phase 1 completed since the first pause**
