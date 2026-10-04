@@ -45,6 +45,10 @@
       "metrics": {
         "quickdraw_test_top5_at_30": 0.6226763285024155,
         "quickdraw_test_top1_at_100": 0.7201449275362319
+      },
+      "checkpoint": {
+        "kernel": "dhiptanshumalik/sketch-evolution-v3",
+        "path": "runs/v3/fusion_ghost_xl/best.pt"
       }
     }
   },
