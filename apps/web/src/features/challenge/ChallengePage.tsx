@@ -87,12 +87,12 @@ export function ChallengePage() {
         <div className="banner">
           {!user ? <>Practice mode: the AI guesses live as you draw. <Link to="/login" state={{ from: "/challenge" }}>Sign in</Link> to submit a scored attempt.</>
             : outOfAttempts ? <>You have used all {t.attempts_max} attempts today. Come back for a new word.</>
-            : <>Draw a <b>{t.target}</b>. The sooner the AI names it, the more points you score.</>}
+            : <>Draw: <b>{t.target}</b>. The sooner the AI names it, the more points you score.</>}
         </div>
         <DrawingBoard
           ref={session.boardRef} onChange={session.onChange} locked={locked}
           underlay={<GhostLayer prediction={loop.last} enabled />}
-          hint={model ? `Draw a ${t.target}. The AI starts guessing after your first stroke.` : "Loading the model…"}
+          hint={model ? `Draw: ${t.target}. The AI starts guessing after your first stroke.` : "Loading the model…"}
         />
         <div className="toolbar">
           <button className="btn" onClick={() => session.boardRef.current?.undo()} disabled={locked || !session.meta.strokes}>Undo stroke</button>

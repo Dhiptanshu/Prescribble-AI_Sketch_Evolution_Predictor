@@ -15,7 +15,7 @@ export function ChallengeMode({ classes, last, boardRef, setLocked, setBanner, s
     setTarget(t); setResult(null); setTruth(null); setLocked(false);
     active.current = true;
     boardRef.current?.clear();
-    setBanner(<>Draw a <b>{t}</b>. The AI wins if it recognises it (≥ 50% confidence) before you finish.</>);
+    setBanner(<>Draw: <b>{t}</b>. The AI wins if it recognises it (≥ 50% confidence) before you finish.</>);
   }, [classes, boardRef, setLocked, setBanner, setTruth]);
 
   useEffect(() => { newRound(); return () => { active.current = false; }; }, [newRound]);

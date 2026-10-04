@@ -78,7 +78,7 @@ export function TeachPage() {
           <h1 className="gradient-text">{target ?? "…"}</h1>
         </div>
         <div className="banner">Draw it the way you normally would, with whatever you are using now (mouse, finger or pen). It does not need to be good.</div>
-        <DrawingBoard ref={session.boardRef} onChange={session.onChange} locked={!model || !target || save.isPending} hint={target ? `Draw a ${target}.` : "Choosing a word…"} />
+        <DrawingBoard ref={session.boardRef} onChange={session.onChange} locked={!model || !target || save.isPending} hint={target ? `Draw: ${target}.` : "Choosing a word…"} />
         <div className="toolbar">
           <button className="btn" onClick={() => session.boardRef.current?.undo()} disabled={!strokes}>Undo stroke</button>
           <button className="btn" onClick={() => session.boardRef.current?.clear()} disabled={!strokes}>Clear</button>

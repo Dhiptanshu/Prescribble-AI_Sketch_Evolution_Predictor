@@ -41,7 +41,7 @@ test.describe("full product (API serves the built app)", () => {
     await page.goto("/studio");
     await waitForModel(page);
     await page.getByRole("button", { name: "AI challenge" }).click();
-    await expect(page.getByText(/Draw a /)).toBeVisible();
+    await expect(page.getByText(/Draw: /)).toBeVisible();
     await page.getByRole("button", { name: "Give up" }).click();
     await expect(page.getByRole("status")).toContainText("Nothing was drawn");
   });

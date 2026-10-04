@@ -75,7 +75,7 @@ export function StudentRoomPage() {
         </div>
         <div className="banner" aria-live="polite">
           {s.phase === "lobby" && "The round starts when your teacher presses start. You can see who else is here."}
-          {drawing && !submitted && <>Draw a <b>{s.round?.target}</b>. The sooner the AI names it, the more points you score.</>}
+          {drawing && !submitted && <>Draw: <b>{s.round?.target}</b>. The sooner the AI names it, the more points you score.</>}
           {drawing && submitted && "Handed in. Scores appear when the round ends."}
           {s.phase === "collecting" && "Time is up. Collecting the last drawings…"}
           {s.phase === "results" && "Results are below."}
@@ -90,7 +90,7 @@ export function StudentRoomPage() {
         <DrawingBoard
           ref={session.boardRef} onChange={session.onChange} locked={locked}
           underlay={<GhostLayer prediction={loop.last} enabled />}
-          hint={!model ? "Loading the model…" : drawing ? `Draw a ${s.round?.target}.` : "Wait for the next round."}
+          hint={!model ? "Loading the model…" : drawing ? `Draw: ${s.round?.target}.` : "Wait for the next round."}
         />
         <div className="toolbar">
           <button className="btn" onClick={() => session.boardRef.current?.undo()} disabled={locked || !session.meta.strokes}>Undo stroke</button>
