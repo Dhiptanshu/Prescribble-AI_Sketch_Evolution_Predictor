@@ -165,6 +165,7 @@ The main project (see [REPORT.md](REPORT.md)) covers Modules I and IV and parts 
 * MNIST and the digit scenes are easy benchmarks; they demonstrate the methods, not state-of-the-art performance.
 * The GAN is judged with a classifier-based score rather than FID, and a single GAN run says little about training stability across seeds.
 * One run per model; differences of about a point are not significant.
+* The VGG16 / ResNet18 / small-CNN comparison was trained before a sampling bug was fixed (every epoch replayed the same samples, see `docs/FLYWHEEL.md`), identically for all of them, so the comparison between them stands as measured but the absolute accuracies are lower than a corrected run would give. The MNIST experiments and the detection scenes use their own data loops and are not affected.
 * The detector was not tried on natural images, where the pretrained weights would be expected to matter much more.
 
 ## Reproduce

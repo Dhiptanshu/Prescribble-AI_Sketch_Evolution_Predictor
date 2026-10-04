@@ -115,6 +115,7 @@ The most common confusions at 30% are {', '.join(f"{c['true']} to {c['predicted'
 * Only {len(CLASSES)} classes. More classes would lower early accuracy.
 * The ghost is blurry by construction (mean prediction); a VAE or GAN could give sharper, multi-modal completions. VAE and GAN were built and measured on MNIST (see SYLLABUS.md) but not applied to sketch completion.
 * A single training run per model (no seeds / confidence intervals); differences of about 1 point between the CNN, LSTM and fusion models should not be over-interpreted.
+* **A training bug found afterwards (4 Oct 2026):** every epoch replayed the same samples, so each model in this report trained on one fixed subset of the data instead of fresh variations. The numbers here are what that pipeline measured; a corrected retraining would be expected to score higher (the retrained 345-class model gained 10 points of Top-5 at 30% of the ink over its flawed first run). The models were not retrained; the fix and the corrected 345-class model are in `docs/FLYWHEEL.md` and `report/GENERATIONS.md`.
 * Object detection (YOLO) was done on composed digit scenes, not on the sketch app itself (see SYLLABUS.md).
 
 ## 7. Reproduce
