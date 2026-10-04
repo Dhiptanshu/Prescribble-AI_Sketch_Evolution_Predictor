@@ -39,8 +39,8 @@ A stroke-aware sketch recognizer: it reads your pen strokes as you draw and rank
 
 <br>
 
-**Deep Learning Laboratory Project (course 2604733): Semester VII**
-Faculty of Engineering and Technology, GLS University
+**Deep Learning Laboratory Project (course 2604733): Semester VII**<br>
+Faculty of Engineering and Technology, GLS University<br>
 B.Tech (CS&E)
 
 **By**
@@ -89,7 +89,7 @@ B.Tech (CS&E)
 
 **Why it is different**
 
-| | |
+| Difference | What it means |
 |---|---|
 | **Early, not final** | The model is trained on partial drawings: each training sample is cut at a random fraction of the drawing's ink length, so it learns to answer from 10 to 100% of the ink. |
 | **Private by design** | Inference runs in the visitor's browser (ONNX Runtime Web). The server stores a drawing only if the user saves or submits it. |
