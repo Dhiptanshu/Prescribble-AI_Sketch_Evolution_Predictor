@@ -9,6 +9,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, Response
 
 from app.errors import ApiError
+from app.middleware import CONTENT_SECURITY_POLICY
 
 # Only fingerprinted (assets/) and versioned (models/vN/) files are immutable. Fixed-name files (ort/, index.html) are revalidated via ETag.
 _IMMUTABLE = ("assets/", "models/")
@@ -38,7 +39,9 @@ def install_web(app: FastAPI, dist: Path) -> None:
             headers = {"Cache-Control": "public, max-age=31536000, immutable" if immutable else "no-cache"}
             if path.startswith(_CROSS_ORIGIN):
                 headers.update(_CROSS_ORIGIN_HEADERS)
+            if target.suffix.lower() == ".html":
+                headers["Content-Security-Policy"] = CONTENT_SECURITY_POLICY
             return FileResponse(target, media_type=_MEDIA_TYPES.get(target.suffix.lower()), headers=headers)
         if "." in Path(path).name:                                   # a missing asset must be a real 404, not index.html
             raise ApiError(404, "not_found", "Not found")
-        return FileResponse(index, headers={"Cache-Control": "no-cache"})
+        return FileResponse(index, headers={"Cache-Control": "no-cache", "Content-Security-Policy": CONTENT_SECURITY_POLICY})

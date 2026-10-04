@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     cookie_name: str = "prescribble_session"
     cookie_secure: bool | None = None         # defaults to True in prod
     cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
+    trusted_origins: list[str] = []           # extra origins allowed to write with the session cookie, e.g. the public https://... address behind a proxy that rewrites Host
 
     auth_attempts_per_minute: int = 10        # per client IP, register + login
     web_dist: Path | None = None              # built web app to serve (single-container deploys)

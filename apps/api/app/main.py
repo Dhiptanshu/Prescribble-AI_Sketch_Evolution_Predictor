@@ -9,12 +9,12 @@ from datetime import datetime, timezone
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 
 from app import models as _models  # noqa: F401  (registers the tables on Base.metadata)
 from app.config import Settings, get_settings
 from app.db import Base, make_engine, make_session_factory
 from app.errors import install_error_handlers
+from app.middleware import BodyLimit, OriginGuard, SecurityHeaders
 from app.ratelimit import SlidingWindowLimiter
 from app.services.room_hub import RoomHub
 from app.routers import admin, auth, challenge, drawings, health, keys, predict, public, rooms, stats, teach
@@ -57,6 +57,7 @@ def create_app(settings: Settings | None = None, clock: Callable[[], datetime] |
         from app.migrations import run_migrations
         run_migrations(settings.database_url)
 
+    app.add_middleware(BodyLimit, max_bytes=MAX_BODY_BYTES)
     app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins, allow_credentials=True,
                        allow_methods=["GET", "POST", "PATCH", "DELETE"], allow_headers=["Content-Type", "Authorization"])
 
@@ -70,12 +71,10 @@ def create_app(settings: Settings | None = None, clock: Callable[[], datetime] |
                  (time.perf_counter() - t0) * 1000, rid)
         return response
 
-    @app.middleware("http")
-    async def limit_body_size(request: Request, call_next):
-        length = request.headers.get("content-length", "")
-        if length.isdigit() and int(length) > MAX_BODY_BYTES:
-            return JSONResponse({"error": {"code": "payload_too_large", "message": "The request body is too large."}}, status_code=413)
-        return await call_next(request)
+    # outermost first: security headers, the cross-site check, then CORS and the request log (added above). The body cap is added FIRST, i.e. innermost, below
+    # the request log: that log is a BaseHTTPMiddleware, which would turn an error raised from outside it while the body is read into a generic 400.
+    app.add_middleware(OriginGuard, cookie_name=settings.cookie_name, trusted=[*settings.cors_origins, *settings.trusted_origins])
+    app.add_middleware(SecurityHeaders, hsts=bool(settings.cookie_secure))
 
     install_error_handlers(app)
     app.include_router(health.router)
