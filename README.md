@@ -3,7 +3,7 @@
 *The AI that guesses your drawing before you finish it.* It reads your strokes as you draw, names what it thinks it is, and paints how it
 expects the drawing to end. The model runs entirely in the browser (about 20 ms per update), so drawings stay private unless you save them.
 
-Started as the Deep Learning Laboratory project (GLS FET, 2604733) on Google QuickDraw (30 classes, stroke-level data) and is growing into a
+Started as the Deep Learning Laboratory project (GLS FET, 2604733) on Google QuickDraw (30 classes, stroke-level data; the live model now recognises all 345 categories, see [report/GENERATIONS.md](report/GENERATIONS.md)) and is growing into a
 product: accounts, saved drawings, a public API and classrooms. See [docs/PRODUCT_PLAN.md](docs/PRODUCT_PLAN.md) for the roadmap and progress.
 
 | Top-5 accuracy (held-out test sketches) | 10% drawn | 20% | 30% | 50% | 100% |
