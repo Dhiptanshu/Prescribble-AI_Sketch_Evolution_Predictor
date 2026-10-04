@@ -416,8 +416,8 @@ flowchart TB
 ### Install
 
 ```bash
-git clone <REPO-URL>            # placeholder: this repository has no remote configured yet
-cd Sketch_Evolution_DLL
+git clone https://github.com/Dhiptanshu/Prescribble-AI_Sketch_Evolution_Predictor.git
+cd Prescribble-AI_Sketch_Evolution_Predictor
 python -m venv .venv
 ```
 
