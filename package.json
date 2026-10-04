@@ -15,7 +15,8 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "eslint .",
     "test:e2e": "npm run test:e2e -w @prescribble/web",
-    "build:widget": "npm run build -w @prescribble/widget"
+    "build:widget": "npm run build -w @prescribble/widget",
+    "flywheel": "python -m src.flywheel.cycle"
   },
   "engines": {
     "node": ">=20"

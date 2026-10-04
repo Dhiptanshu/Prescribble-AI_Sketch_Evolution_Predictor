@@ -88,6 +88,16 @@ def register(version: str, models_dir: Path = MODELS, parent: str | None = None,
     return entry
 
 
+def set_checkpoint(version: str, kernel: str, path: str, models_dir: Path = MODELS) -> None:
+    """Remember where a version's training checkpoint (best.pt) lives on Kaggle, so a later fine-tune can start from it:
+    `kernel` is the Kaggle kernel whose output holds it, `path` the file inside that output (for example runs/v3/fusion_ghost_xl/best.pt)."""
+    reg = load(models_dir)
+    if version not in reg["versions"]:
+        raise RegistryError(f"{version} is not registered")
+    reg["versions"][version]["checkpoint"] = {"kernel": kernel, "path": path}
+    save(reg, models_dir)
+
+
 def verify(version: str, models_dir: Path = MODELS) -> list[str]:
     """Problems that make a registered version unfit to serve (empty list = fine): files, hash, class count, a real forward pass."""
     problems: list[str] = []
@@ -177,6 +187,7 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("promote"); p.add_argument("version"); p.add_argument("--heldout", type=Path); p.add_argument("--user-eval", type=Path)
     p.add_argument("--force", action="store_true"); p.add_argument("--tolerance", type=float, default=0.01)
     sub.add_parser("rollback")
+    k = sub.add_parser("set-checkpoint"); k.add_argument("version"); k.add_argument("kernel"); k.add_argument("path")
     a = ap.parse_args(argv)
     try:
         if a.cmd == "list":
@@ -191,6 +202,9 @@ def main(argv: list[str] | None = None) -> int:
             return 1 if problems else 0
         elif a.cmd == "promote":
             print(json.dumps(promote(a.version, heldout=a.heldout, user_eval=a.user_eval, force=a.force, tolerance=a.tolerance), indent=2))
+        elif a.cmd == "set-checkpoint":
+            set_checkpoint(a.version, a.kernel, a.path)
+            print(f"{a.version}: checkpoint is {a.path} in the output of {a.kernel}")
         elif a.cmd == "rollback":
             print("live version is now", rollback())
     except RegistryError as e:
