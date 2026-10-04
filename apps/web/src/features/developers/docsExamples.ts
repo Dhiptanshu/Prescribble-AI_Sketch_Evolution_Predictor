@@ -3,14 +3,14 @@
 export const EXAMPLE_REQUEST = { strokes: [[[20, 200], [128, 40], [236, 200], [20, 200]]], top_k: 3 };
 
 export const EXAMPLE_RESPONSE = {
-  model: "v1",
+  model: "v3",
   ink: 602.1,
   predictions: [
-    { label: "pizza", probability: 0.72533 },
-    { label: "star", probability: 0.2596 },
-    { label: "house", probability: 0.01092 },
+    { label: "triangle", probability: 0.65 },
+    { label: "tent", probability: 0.23638 },
+    { label: "mountain", probability: 0.0277 },
   ],
-  inference_ms: 4.93,
+  inference_ms: 8.02,
 };
 
 const body = JSON.stringify(EXAMPLE_REQUEST);

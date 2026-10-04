@@ -1,5 +1,6 @@
 import hashlib
 import json
+from pathlib import Path
 from datetime import date, timedelta
 
 from fastapi.testclient import TestClient
@@ -222,15 +223,30 @@ def test_model_info_is_public(client):
         "max_points": s.max_points, "max_active_keys": s.max_keys_per_user, "top_k_max": 10}}
 
 
-def test_the_documented_example_is_what_the_api_really_returns(app, client, make_user):
-    """The developer docs show this exact request and response (captured from the real model). If the model or pipeline changes, update the docs."""
-    make_user()
-    key = create_key(client)["key"]
-    body = call(app, key, TRIANGLE, top_k=3).json()
-    assert [g["label"] for g in body["predictions"]] == ["pizza", "star", "house"]
-    for got, want in zip(body["predictions"], (0.72533, 0.2596, 0.01092)):
+def documented_example() -> dict:
+    """The example response exactly as written in the developer docs source (apps/web/src/features/developers/docsExamples.ts)."""
+    import re
+
+    text = (Path(__file__).resolve().parents[3] / "apps" / "web" / "src" / "features" / "developers" / "docsExamples.ts").read_text(encoding="utf-8")
+    block = text[text.index("EXAMPLE_RESPONSE"):]
+    return {"model": re.search(r'model: "(v\d+)"', block).group(1), "ink": float(re.search(r"ink: ([\d.]+)", block).group(1)),
+            "predictions": [(m.group(1), float(m.group(2))) for m in re.finditer(r'label: "([^"]+)", probability: ([\d.]+)', block)]}
+
+
+def test_the_documented_example_is_what_the_api_really_returns(clock, live_scorer):
+    """The developer docs show a request and response captured from the real model. This reads the docs file and compares it with the model that is
+    LIVE in models/registry.json: promoting a new version fails this test until the example is captured again, so the docs cannot go stale quietly."""
+    doc = documented_example()
+    app = build_app(clock, live_scorer)
+    with TestClient(app) as c:
+        register(c, "doc@example.com", "Doc")
+        key = create_key(c)["key"]
+        body = call(app, key, TRIANGLE, top_k=3).json()
+    assert body["model"] == doc["model"], f"the docs show model {doc['model']} but {body['model']} is live: recapture the example in docsExamples.ts"
+    assert [g["label"] for g in body["predictions"]] == [label for label, _ in doc["predictions"]]
+    for got, (_, want) in zip(body["predictions"], doc["predictions"]):
         assert abs(got["probability"] - want) < 0.01, (got, want)
-    assert body["ink"] == 602.1 and body["model"] == "v1"
+    assert body["ink"] == doc["ink"]
 
 
 def test_admin_metrics_are_for_admins_and_match_the_data(app, client, other_client, make_user):

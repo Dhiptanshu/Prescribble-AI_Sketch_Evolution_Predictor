@@ -10,7 +10,8 @@ test.describe("full product (API serves the built app)", () => {
     const stats = page.locator(".stat b");
     await expect(stats).toHaveCount(4);
     for (let i = 0; i < 3; i++) await expect(stats.nth(i)).toHaveText(/^\d+\.\d%$/);   // read from the model's real test results
-    await expect(stats.nth(3)).toHaveText("30");
+    const live = await (await page.request.get("/api/v1/model")).json();
+    await expect(stats.nth(3)).toHaveText(String(live.classes.length));               // the live model's own class count
     await expect(page.locator(".top1 .name").first()).toBeVisible({ timeout: 30_000 });    // hero demo is predicting a real sketch
     expect(errors, errors.join("\n")).toEqual([]);          // includes: no 401 noise for a logged-out visitor
   });

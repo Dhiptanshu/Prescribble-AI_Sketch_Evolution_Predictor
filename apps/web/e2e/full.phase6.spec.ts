@@ -21,7 +21,8 @@ test.describe("phase 6: the model flywheel", () => {
     const registryFile = join(models, "registry.json");
     const original = readFileSync(registryFile, "utf-8");
     try {
-      cpSync(join(models, "v1"), join(models, "v1b"), { recursive: true });                     // stands in for "a newly trained version"
+      const live = JSON.parse(original).active as string;                                         // whichever version the build ships
+      cpSync(join(models, live), join(models, "v1b"), { recursive: true });                      // stands in for "a newly trained version"
       writeFileSync(registryFile, JSON.stringify({ ...JSON.parse(original), active: "v1b" }));  // what `registry promote` writes
       const model: string[] = [];
       page.on("request", (r) => { if (r.url().endsWith("sketch.onnx")) model.push(new URL(r.url()).pathname); });
@@ -35,7 +36,7 @@ test.describe("phase 6: the model flywheel", () => {
       model.length = 0;
       await page.reload();
       await waitForModel(page);
-      expect(model).toEqual(["/models/v1/sketch.onnx"]);
+      expect(model).toEqual([`/models/${live}/sketch.onnx`]);
     } finally {
       writeFileSync(registryFile, original);
       if (existsSync(join(models, "v1b"))) rmSync(join(models, "v1b"), { recursive: true, force: true });

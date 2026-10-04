@@ -14,7 +14,8 @@ REPO_MODELS = Path(__file__).resolve().parents[3] / "models"      # the real mod
 
 
 def make_settings(**overrides) -> Settings:
-    base = dict(env="test", database_url="sqlite://", secret_key="t" * 48, auth_attempts_per_minute=1000, models_dir=REPO_MODELS)
+    # model_version is pinned to the fixture model (v1) so the tests do not depend on which version the repo has live; the version tests pass None
+    base = dict(env="test", database_url="sqlite://", secret_key="t" * 48, auth_attempts_per_minute=1000, models_dir=REPO_MODELS, model_version="v1")
     return Settings(**{**base, **overrides})
 
 
@@ -42,6 +43,12 @@ class Clock:
 @pytest.fixture(scope="session")
 def scorer():
     return Scorer(REPO_MODELS, "v1")
+
+
+@pytest.fixture(scope="session")
+def live_scorer():
+    """The model the repo currently has live (models/registry.json), for tests that guard what is shown to people."""
+    return Scorer(REPO_MODELS, json.loads((REPO_MODELS / "registry.json").read_text(encoding="utf-8"))["active"])
 
 
 @pytest.fixture

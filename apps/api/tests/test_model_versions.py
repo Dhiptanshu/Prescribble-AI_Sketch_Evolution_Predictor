@@ -28,7 +28,7 @@ def models_dir(tmp_path):
 
 def make_app(models_dir, clock, **settings):
     """No scorer is injected: the app resolves and loads the model itself, as in production."""
-    return create_app(make_settings(models_dir=models_dir, **settings), clock=clock)
+    return create_app(make_settings(models_dir=models_dir, **{"model_version": None, **settings}), clock=clock)
 
 
 def promote_on_disk(models_dir, version):
@@ -110,7 +110,7 @@ def test_the_registry_file_is_revalidated_but_versioned_models_stay_immutable(mo
     (dist / "index.html").write_text("<html></html>")
     (dist / "models" / "v1" / "meta.json").write_text("{}")
     (dist / "models" / "registry.json").write_text(json.dumps({"active": "v1"}))
-    app = create_app(make_settings(web_dist=dist, models_dir=models_dir))
+    app = create_app(make_settings(web_dist=dist, models_dir=models_dir, model_version=None))
     with TestClient(app) as web:
         assert "immutable" in web.get("/models/v1/meta.json").headers["cache-control"]
         reg = web.get("/models/registry.json")

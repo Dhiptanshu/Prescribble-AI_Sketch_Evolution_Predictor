@@ -4,6 +4,7 @@ import type { AddressInfo } from "node:net";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { expect, test, type Page, type Request } from "@playwright/test";
+import { EXAMPLE_RESPONSE } from "../src/features/developers/docsExamples";
 import { HOUSE, watchErrors } from "./helpers";
 
 const PASSWORD = "Phase-Four-Passphrase-52";
@@ -43,7 +44,7 @@ test.describe("phase 4: developer platform", () => {
     await expect(limits).toContainText(String(info.limits.requests_per_day));
 
     // the example response is the model's real output for the documented request
-    await expect(page.getByLabel("Example response", { exact: true })).toContainText('"label": "pizza"');
+    await expect(page.getByLabel("Example response", { exact: true })).toContainText(`"label": "${EXAMPLE_RESPONSE.predictions[0]!.label}"`);
     await expect(page.getByLabel("curl example", { exact: true })).toContainText("Authorization: Bearer $PRESCRIBBLE_KEY");
     await page.getByRole("tab", { name: "Python" }).click();
     await expect(page.getByLabel("python example", { exact: true })).toContainText("requests.post");
@@ -91,7 +92,7 @@ test.describe("phase 4: developer platform", () => {
     expect(ok.status()).toBe(200);
     const body = await ok.json();
     expect(body.predictions).toHaveLength(3);
-    expect(body.predictions[0].label).toBe("pizza");                 // the documented example, reproduced for real
+    expect(body.predictions[0].label).toBe(EXAMPLE_RESPONSE.predictions[0]!.label);        // the documented example, reproduced for real
     expect(Number(ok.headers()["ratelimit-remaining"])).toBeLessThan(Number(ok.headers()["ratelimit-limit"]));
 
     // a web page cannot: a secret key in front-end code is refused
