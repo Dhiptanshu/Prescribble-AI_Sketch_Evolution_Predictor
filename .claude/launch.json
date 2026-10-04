@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "prescribble",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["scripts/run_local.mjs"],
+      "port": 8100
+    }
+  ]
+}
