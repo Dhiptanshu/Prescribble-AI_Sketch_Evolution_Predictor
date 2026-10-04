@@ -36,6 +36,15 @@ def test_assets_and_models_are_served_with_long_cache(web):
     assert "immutable" not in web.get("/ort/loader.mjs").headers["cache-control"]
 
 
+def test_head_requests_get_the_same_headers_as_get(web):
+    """Found by the container check in CI: a HEAD for a model file was refused with 405, so proxies and tools could not read its cache headers."""
+    for path in ("/assets/app-abc123.js", "/models/v1/meta.json", "/studio"):
+        head, get = web.head(path), web.get(path)
+        assert head.status_code == 200 and head.content == b""
+        assert head.headers["cache-control"] == get.headers["cache-control"]
+    assert "immutable" in web.head("/models/v1/meta.json").headers["cache-control"]
+
+
 def test_module_scripts_and_wasm_get_browser_safe_media_types(web):
     """Browsers refuse module scripts served as text/plain (the Windows registry default for .mjs)."""
     assert web.get("/ort/loader.mjs").headers["content-type"].startswith("text/javascript")

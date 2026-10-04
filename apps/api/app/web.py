@@ -29,7 +29,7 @@ def install_web(app: FastAPI, dist: Path) -> None:
     if not index.is_file():
         raise RuntimeError(f"web dist not found: {index} (build the web app first)")
 
-    @app.get("/{path:path}", include_in_schema=False)
+    @app.api_route("/{path:path}", methods=["GET", "HEAD"], include_in_schema=False)       # HEAD: proxies, CDNs and health tools ask for headers only
     def spa(path: str, request: Request) -> Response:
         if path.startswith(_API_PREFIXES):
             raise ApiError(404, "not_found", "Not found")
