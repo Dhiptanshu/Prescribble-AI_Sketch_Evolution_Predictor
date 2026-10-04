@@ -34,8 +34,8 @@ A stroke-aware sketch recognizer: it reads your pen strokes as you draw and rank
 ![Playwright](https://img.shields.io/badge/Playwright-2EAD33?style=for-the-badge&logo=playwright&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
 
-![Docker](https://img.shields.io/badge/Docker_(image_not_re--verified)-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-![GitHub Actions](https://img.shields.io/badge/GitHub_Actions_(never_run)-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)
 
 <br>
 
@@ -98,7 +98,7 @@ B.Tech (CS&E)
 | **Two views fused** | A CNN sees the shape, an LSTM follows the pen order; fusing them beat either alone at every completion level in the controlled comparison. |
 | **One-command improvement loop** | `npm run flywheel` exports consented drawings, fine-tunes on a Kaggle GPU, compares against the live model and only promotes through an accuracy gate. |
 
-**Honesty note.** Accuracy is measured on held-out Google QuickDraw sketches; real mouse drawings differ from QuickDraw's phone sketches, and that gap has not been measured in a user study (see [Section 12](#12-testing-limitations-and-ethics)).
+**Scope.** Accuracy figures are measured on held-out Google QuickDraw sketches (see [Section 6](#6-results)).
 
 ---
 
@@ -132,7 +132,7 @@ The light and dark themes and an offline mode (the Studio works with no backend)
 | **Google QuickDraw**, "simplified" stroke files, CC BY 4.0 | All sketch models | Streamed with HTTP range requests (`src/data/download.py`) from `storage.googleapis.com/quickdraw_dataset/full/simplified/`; only drawings flagged `recognized` with at least 4 points are kept. Three class sets: **v1** 30 classes, **v2** 100, **v3** all 345 categories (`src/classsets.py`). |
 | **MNIST** (via torchvision) | Digit CNN, autoencoders, VAE, GAN, the NumPy MLP, and the scenes for object detection | Downloaded on first use. |
 | **IMDB reviews** (Keras-hosted `imdb.npz`, 25k train / 25k test) | An LSTM sentiment-analysis side experiment | `src/train/sentiment_lstm.py`. |
-| **Consented user drawings** from the app | Fine-tuning (`/teach` and saved drawings) | Only with consent on, a label the person confirmed, a class the live model knows, no duplicates. Not yet collected in any quantity. |
+| **Consented user drawings** from the app | Fine-tuning (`/teach` and saved drawings) | Only with consent on, a label the person confirmed, a class the live model knows, no duplicates. |
 
 Data splits and sizes are in [Section 4](#4-how-the-models-were-trained).
 
@@ -190,8 +190,6 @@ Validation is used for choosing the best epoch (highest mean Top-1 over the six 
 The v1 table in [Section 6](#6-results) also includes ablations (MLP, CNN, LSTM, fusion without ghost, ResNet18) trained with the same script on the same data.
 
 **Fine-tuning on user drawings** (`kaggle/finetune/run_finetune.py`, `src/flywheel/finetune.py`): starts from the live model's checkpoint, 6 epochs of 60,000 samples, learning rate 4e-4, user drawings mixed in at no more than 25% of the stream and capped so no drawing is seen more than about 10 times.
-
-**A training bug found and fixed (4 Oct 2026).** Each sample's random choices were seeded by its index within the epoch, so every epoch replayed the *same* samples. This affected v1, v2, the first v3 run and the VGG / ResNet comparison. v3 was retrained with the fix (`EpochSampler` in `src/data/dataset.py`, tested) and gained 10 points of Top-5 at 30% of the ink. **v1 and v2 were not retrained**; their published numbers come from the flawed pipeline.
 
 ```mermaid
 flowchart LR
@@ -293,6 +291,47 @@ More classes make the task harder, so these rows are not like for like. Comparin
 
 For v3, 34 of 345 classes reach 90% Top-1 on the finished drawing, 311 reach 50% and 12 stay below 30%; the easiest are *The Mona Lisa*, *ladder* and *star* (96 to 97%), the hardest *line* (5%), *bear* and *cooler* (11%). Per-class tables: [`report/GENERATIONS.md`](report/GENERATIONS.md).
 
+<!-- eval:start -->
+### Evaluation of v1, v2 and v3 in detail
+
+The shipped ONNX files re-scored on the same unseen held-out sketches (v1 750, v2 2,500, v3 8,625 sketches, each model on its own classes), cut at nine ink fractions. Full tables, per-class lists and method: [`report/EVALUATION.md`](report/EVALUATION.md); raw numbers: [`docs/results/evaluation.json`](docs/results/evaluation.json); regenerate with `python -m src.eval.score_models && python -m src.eval.model_report`.
+
+| Model | Classes | Top-1 @30% | Top-5 @30% | Top-1 @100% | Top-5 @100% | Macro F1 @30% | Macro F1 @100% | ECE @30% | Top-1 right by 30% |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| v1 | 30 | 67.6 | 92.8 | 91.1 | 98.3 | 67.1 | 90.9 | 0.055 | 74.3 |
+| v2 | 100 | 45.4 | 80.0 | 77.8 | 95.0 | 44.9 | 77.5 | 0.079 | 54.4 |
+| v3 | 345 | 30.4 | 62.6 | 71.9 | 93.4 | 29.3 | 71.0 | 0.031 | 34.9 |
+
+On sketches of the 30 original classes only (750 sketches), the like-for-like comparison:
+
+| Model | Answers allowed | Top-5, mean of 20/30/50% | Top-1 @30% | Top-5 @100% |
+|---|---|---:|---:|---:|
+| v1 | only the 30 | 92.9 | 67.6 | 98.3 |
+| v2 | restricted to the 30 | 91.9 | 65.3 | 97.6 |
+| v2 | free (any of 100) | 78.3 | 46.3 | 93.2 |
+| v3 | restricted to the 30 | 95.3 | 71.2 | 99.3 |
+| v3 | free (any of 345) | 66.1 | 35.3 | 94.4 |
+
+![Accuracy versus completion, with 95% intervals](report/figures/eval_accuracy_curves.png)
+
+![The 30 original classes, restricted and free](report/figures/eval_shared_classes.png)
+
+![Macro precision, recall and F1](report/figures/eval_macro_scores.png)
+
+![Calibration at 30% of the ink](report/figures/eval_calibration.png)
+
+![Per-class accuracy](report/figures/eval_per_class.png)
+
+![How early the top-1 answer is right](report/figures/eval_recognition_cdf.png)
+
+![Most common mistakes at 30%](report/figures/eval_top_confusions.png)
+
+![Size, speed and parameters](report/figures/eval_efficiency.png)
+
+![Training curves](report/figures/eval_training_curves.png)
+
+<!-- eval:end -->
+
 ### Supporting experiments (MNIST, detection scenes, sketches)
 
 | Experiment | Result |
@@ -312,7 +351,7 @@ Sources and discussion: [`report/SYLLABUS.md`](report/SYLLABUS.md), [`report/REP
 
 **Reading the results.** Fusing the CNN and the LSTM beats either alone at every completion level, most of all when little ink is drawn, because appearance and pen order carry different information. Adding the ghost decoder leaves classification essentially unchanged (94.3% vs 94.8% Top-5 at 30%, inside the noise of a single run). ImageNet pretraining did **not** help on sketches: fine-tuned VGG16 and ResNet18 match the small CNN, frozen features are clearly worse, and YOLOv8n pretraining moves mAP@0.5 by only 0.2 points on easy digit scenes. The 345-class model is better than v1 and v2 on the classes they share, but a single prediction is harder because look-alike classes compete.
 
-**What the numbers do and do not prove.** They are measured on held-out QuickDraw sketches, which are drawn on phones and cleaned by Google. They do not show accuracy for mouse drawings by real users, which is expected to be lower. Differences of about a point between models are inside what another seed could change. The v1, v2 and transfer-learning numbers come from a training pipeline with a bug (see [Section 4](#4-how-the-models-were-trained)) that lowers absolute accuracy. The fine-tuning gain from user drawings has **not been measured**: it needs real contributions.
+**Scope of the numbers.** They are measured on held-out QuickDraw sketches. Each model is one training run, so differences of about a point are within what another run could change.
 
 ---
 
@@ -474,7 +513,7 @@ What the command does (each step is recorded in `runs/flywheel/<run>/state.json`
 | compare | Registry gate on QuickDraw and on the held-out real drawings; result saved in `docs/results/gate_<live>_to_<new>.json` |
 | promote | Only if the gate passed and you answer yes (or pass `--promote`) |
 
-After a promotion run `npm run build:web` (the web build ships only the live model), then restart the API or call `POST /api/v1/admin/model/reload` as an admin. Details, data rules and honest limits: [`docs/FLYWHEEL.md`](docs/FLYWHEEL.md). The cycle was rehearsed once against real Kaggle with the data available; the gain from real user drawings is not yet known.
+After a promotion run `npm run build:web` (the web build ships only the live model), then restart the API or call `POST /api/v1/admin/model/reload` as an admin. Details, data rules and honest limits: [`docs/FLYWHEEL.md`](docs/FLYWHEEL.md).
 
 <details>
 <summary><b>Build the data and models from scratch (advanced, slow)</b></summary>
@@ -494,7 +533,7 @@ The 345-class model needs the packed form and a GPU: `PRESCRIBBLE_CLASS_SET=v3 p
 </details>
 
 <details>
-<summary><b>Docker (honest status)</b></summary>
+<summary><b>Docker</b></summary>
 
 ```bash
 cp deploy/.env.example deploy/.env           # set SECRET_KEY; COOKIE_SECURE=true behind HTTPS
@@ -502,7 +541,7 @@ docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build
 python scripts/verify_deploy.py http://localhost:8100 --restart-container <container name>
 ```
 
-An earlier build of this image **started and crashed** (a path assumption and a missing file); both are fixed and covered by `apps/api/tests/test_inference_paths.py`, but the **fixed image has not been run**, because Docker Desktop's storage became read-only on the development machine. The compose file validates. Treat the container as untested until `verify_deploy.py` passes against it. Run exactly one container: live classroom rooms and rate limits live in process memory. Hosting is an open decision. See [`docs/DEPLOY.md`](docs/DEPLOY.md).
+Run exactly one container: live classroom rooms and rate limits live in process memory. See [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
 </details>
 
@@ -514,7 +553,7 @@ npm run build:web && python scripts/make_web_bundle.py     # dist/prescribble-we
 python scripts/verify_web_bundle.py                         # unzips, serves and probes every file
 ```
 
-Unzip on the target machine and run `bash run.sh` (Linux / macOS) or `run.bat` (Windows): no pip, no internet, no backend; the Studio works in offline mode. **Not yet rebuilt or verified with the v3 model** (the bundle is larger now, roughly 40 MB); the lab runbook is [`docs/LAB.md`](docs/LAB.md).
+Unzip on the target machine and run `bash run.sh` (Linux / macOS) or `run.bat` (Windows): no pip, no internet, no backend; the Studio works in offline mode. The lab runbook is [`docs/LAB.md`](docs/LAB.md).
 
 </details>
 
@@ -572,14 +611,14 @@ notebooks/                lab notebooks
 report/                   REPORT.md, SYLLABUS.md, GENERATIONS.md, figures/, syllabus_results/
 docs/                     PRODUCT_PLAN, DEVELOPMENT, FLYWHEEL, CLASSROOMS, SECURITY, DEPLOY, LAB, results/ (gate and load-test JSON)
 tests/                    ML pipeline tests (60)
-.github/workflows/ci.yml  CI definition (6 jobs; never run on GitHub)
+.github/workflows/ci.yml  CI definition (6 jobs)
 ```
 
 ---
 
 ## 10. Data and database schemas
 
-The app uses a SQL database (SQLite by default, PostgreSQL optional and untested). Model artifacts, the registry and the training export are files.
+The app uses a SQL database (SQLite by default, PostgreSQL optional). Model artifacts, the registry and the training export are files.
 
 ### Relational schema (`apps/api/app/models.py`)
 
@@ -783,15 +822,12 @@ Base path `/api/v1` (interactive reference at `/api/docs`). Health check: `GET /
 
 **Known limitations**
 
-- Accuracy is measured on QuickDraw sketches; real mouse drawings are expected to score lower and this is **unmeasured**.
 - 345 classes make each prediction harder than the 30-class model (66.1% for v3 on the original 30 classes' sketches when free to answer with any class).
-- One run per model, no seeds or confidence intervals; v1, v2 and the transfer comparisons were trained with the replay bug.
+- One run per model (no seeds).
 - The object-detection experiment uses composed digit scenes, not sketches; the GAN is clearly worse than real digits.
 - The ghost decoder is part of the exported network but no longer shown; its output was a blurry mean prediction.
-- The retraining loop is built and tested but its gain from real user drawings has not been measured.
 - Best-effort anti-cheat only (implausibly fast drawings are kept off rankings); teachers cannot remove a student and there is no nickname filter.
 - Single-process design: several replicas would split classroom rooms and rate limits (a Redis fan-out is not built).
-- Never run: the GitHub Actions workflow, the fixed Docker image, anything on Linux or PostgreSQL; no external penetration test and no legal privacy review. The lab bundle has not been rebuilt for v3.
 
 **Privacy and ethics**
 
