@@ -121,9 +121,14 @@ Score = `round((1 - fraction) * 100)`; a drawing the AI never gets scores 0. Pla
 - **Mouse-drawing adaptation:** fine-tuning with user drawings mixed in and a before / after measurement on the held-out real drawings and on QuickDraw (`src/flywheel/finetune.py`, `kaggle/flywheel/run_finetune.py`). Only smoke-tested: it needs real drawings, and nobody has taught the AI yet.
 - Found by the tests and fixed: the Teach page kept showing the old contribution count after a withdrawal.
 
-**Left over:** build the Docker image once Docker Desktop is running; one real lab rehearsal when possible (the lab runbook lists what is untested).
+**Phase 7 built (hardening; checklist in `docs/SECURITY.md`, deployment in `docs/DEPLOY.md`)**
+- **Security:** strict content security policy and security headers, a cross-site write check (`OriginGuard`), a request-body cap enforced while streaming, WebSocket frame cap; dependency audit (`pip-audit` clean; 2 moderate `npm audit` findings in react-router, not reachable in a client-only app, documented). Tests in `test_security.py`.
+- **Operations:** verified SQLite backups and restore in the operator CLI (`backup`, `restore`), SQLite in WAL mode, scoring limited to one ORT thread per session with a concurrency semaphore (predict throughput 8 to about 20 a second, 95th percentile 7.5 s to under 0.7 s under 16 callers), `scripts/verify_deploy.py` smoke test, GitHub Actions workflow (6 jobs), accessibility scan of every main page in both themes (axe, WCAG 2.1 A and AA).
+- **Load test** (`scripts/loadtest.py`, numbers in `docs/DEPLOY.md` section 6): 60 students handing in at the same instant are all scored in about 20 s (CPU bound, about 3 a second), 0 errors. A first run suggested 30x worse; the cause was the test tool opening a new TCP connection per request on Windows, fixed in the tool.
+- **Found and fixed on the way:** the Docker image crashed on start (import path assumptions, missing `classsets.py`), now covered by `test_inference_paths.py`.
+- **Not verified, said plainly:** the fixed Docker image has not been run (Docker Desktop's storage went read-only; restarting it would stop your other project's containers, so it waits for your OK); the CI workflow has never run on GitHub; nothing was tested on Linux or PostgreSQL; no external penetration test. Open: teacher removing a student, nickname moderation, Redis fan-out for several replicas.
 
-**Next:** Phase 6 (feedback and retrain flywheel), then Phase 7 (hardening).
+**Next:** deploy (owner picks the host), the Docker check above, and the open leftovers.
 
 ## 5. Quality bars
 - Backend: pytest with an isolated DB per test; auth, ownership and validation covered; migrations tested up and down.
