@@ -78,8 +78,6 @@ B.Tech (CS&E)
 
 ## 1. What is Prescribble?
 
-> **Name note.** "Prescribble" is a working name. The product name is an open decision for the project owner.
-
 **The problem.** Most sketch recognizers need a finished drawing. A person drawing on a screen shows their intent long before the last stroke, and a recognizer that waits for the end throws that signal away.
 
 **What it does**
@@ -188,6 +186,32 @@ Validation is used for choosing the best epoch (highest mean Top-1 over the six 
 | Hardware | Kaggle GPU | Kaggle GPU, 3.6 hours |
 
 The v1 table in [Section 6](#6-results) also includes ablations (MLP, CNN, LSTM, fusion without ghost, ResNet18) trained with the same script on the same data.
+
+### Why these models, and how each one shaped the final model
+
+The final network was not picked in one step. Each model below was trained to answer one question, and the answer decided what went into the deployed model. Figures are Top-5 accuracy on the 30-class test set at the stated share of the drawing (full tables in [Section 6](#6-results)).
+
+| Model | Question it answered | What the result changed |
+|---|---|---|
+| **MLP written in NumPy** (manual backpropagation, checked against numerical gradients) | How far does a plain network get with no knowledge of shape or order? | 78.3% at 30%, far behind everything else. It is the floor, and it showed that spatial structure and stroke order are what matter. |
+| **CNN on the 64x64 raster** | Is the *shape* of the ink enough? | 93.9% at 30%, 98.4% when finished: strong on a mostly finished drawing, weakest at 10% of the ink (74.3%). Kept as the image branch. |
+| **LSTM over the stroke points** | Does the *order* of the pen carry information a picture lacks? | Yes, early on: 77.8% at 10% against 74.3% for the CNN, because order is known before the shape is. Slightly weaker on the finished drawing (Top-1 88.3% against 89.8%). Kept as the sequence branch. |
+| **CNN + LSTM fusion** | Do the two views complement each other? | Best at every completion level, most of all early (78.4% at 10%, 94.8% at 30%). This is the architecture that was deployed. |
+| **Ghost decoder** (a convolutional decoder trained jointly to redraw the *completed* drawing, with the partial raster as a skip connection) | Does asking the shared features to also describe the whole drawing help, or at least not hurt? | It did not hurt: 94.3% against 94.8% without it at 30%, within the noise of a single run. It stayed in the exported network; the app no longer displays its output. |
+| **ResNet18 with ImageNet weights**, in place of the small CNN | Does pretraining on photographs help on line drawings? | No. 87.9% against 90.6% at 20%, a finished Top-1 of 91.3% against 91.6%, and about 130 s per epoch against 55 s. The small CNN trained from scratch was kept. |
+| **VGG16** (frozen and fine-tuned) and **ResNet18** on the raster alone | The same question, controlled: frozen features or full fine-tuning? | Frozen VGG16 is clearly worse (88.9% against 93.9% for the small CNN); fine-tuned VGG16 and ResNet18 only match it (93.7% and 92.0%) while training 11 to 15 million parameters. Confirms that adapting a pretrained network buys nothing here. |
+| **Wide variant** (`fusion_ghost_xl`: CNN width 1.5, LSTM hidden 256, head 512, 8.6 M parameters) | Can the same design carry 345 classes? | Used for v3, which recognises every QuickDraw category; it costs 12 ms per prediction on a CPU against 4.8 ms for v1. |
+
+Models built to understand the problem rather than to be deployed:
+
+| Model | What it showed | Link to the final model |
+|---|---|---|
+| **Convolutional autoencoder** (bottleneck 2, 8 and 32) and **denoising autoencoder** | Reconstruction error falls steadily as the code grows (MSE 0.0448, 0.0182, 0.0045) and denoising removes most of the noise | The encoder-decoder idea behind the ghost decoder |
+| **Variational autoencoder** | A KL term turns the code into a smooth space that can be sampled; beta trades sharpness against smoothness (reconstruction plus KL 101.5 at beta 1, 114.9 at 0.1, 116.7 at 4) | Considered as a way to make the ghost sharper; built and measured on MNIST, not applied to sketches |
+| **DCGAN** | Samples cover all ten digits but are clearly less recognisable than real ones (classifier confidence 0.74 against 0.96) | Same: a possible route to sharper completions, not used in the app |
+| **YOLO-style detector** (from scratch, and YOLOv8n with and without COCO weights) | The detection pipeline is correct (an independent implementation and Ultralytics agree, mAP@0.5 about 99.3 to 99.6); pretraining moved it by 0.2 points on easy digit scenes | A separate task (finding several objects); not part of the sketch model |
+
+Three design decisions shaped the model as much as the architecture. Drawings are cut at a share of their **ink length**, not their stroke count, so a cut can fall mid-stroke like a live pen. The partial drawing is **not re-normalised**, because a person drawing has no final bounding box. And augmentation is applied to the whole drawing **before** cutting, so the prefix and the completed drawing the decoder reconstructs always come from the same transformed drawing.
 
 **Fine-tuning on user drawings** (`kaggle/finetune/run_finetune.py`, `src/flywheel/finetune.py`): starts from the live model's checkpoint, 6 epochs of 60,000 samples, learning rate 4e-4, user drawings mixed in at no more than 25% of the stream and capped so no drawing is seen more than about 10 times.
 
