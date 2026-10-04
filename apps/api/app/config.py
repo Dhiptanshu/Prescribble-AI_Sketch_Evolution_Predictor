@@ -43,6 +43,8 @@ class Settings(BaseSettings):
     api_daily_limit: int = 1000               # predictions per API key per UTC day (stored on each key when it is created)
     api_per_minute: int = 60                  # burst limit per API key
     max_keys_per_user: int = 5                # active API keys per account
+    ort_threads: int = 1                      # ONNX Runtime threads per prediction (1: requests already run in parallel)
+    scoring_concurrency: int = 4              # model runs at the same moment; more wait their turn (keeps WebSockets and health checks responsive under a burst)
     max_open_rooms: int = 10                  # open classrooms per teacher
     max_room_members: int = 60                # students per classroom
     max_rounds_per_room: int = 30

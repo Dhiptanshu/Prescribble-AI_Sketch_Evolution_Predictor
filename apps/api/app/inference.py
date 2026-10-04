@@ -6,6 +6,7 @@ not an identical one), which is why only the server's number counts.
 """
 import json
 import sys
+import threading
 from pathlib import Path
 
 import numpy as np
@@ -48,14 +49,20 @@ def _as_array(strokes) -> np.ndarray:
 
 
 class Scorer:
-    def __init__(self, models_dir: Path, version: str, ml_root: Path | None = None):
+    def __init__(self, models_dir: Path, version: str, ml_root: Path | None = None, threads: int = 1, concurrency: int = 4):
+        """`threads`: ONNX Runtime threads per prediction. One is right for a server: many requests run at once, and a thread per CPU core for EACH of them
+        made 16 simultaneous requests fight over the processor (tail latencies of seconds). `concurrency`: how many drawings are scored at the same moment;
+        the rest wait their turn, which keeps the server's event loop (WebSocket keep-alives, health checks) responsive during a classroom burst."""
         folder = models_dir / version
+        self._slots = threading.BoundedSemaphore(max(1, concurrency))
         self.version = version
         meta = json.loads((folder / "meta.json").read_text(encoding="utf-8"))
         self.classes: list[str] = meta["classes"]
         self.challenge_classes: list[str] = challenge_classes(meta)       # classes fair to set as a daily word or a round word
         self._p = _load_pipeline(ml_root)
-        self._session = ort.InferenceSession(str(folder / "sketch.onnx"), providers=["CPUExecutionProvider"])
+        options = ort.SessionOptions()
+        options.intra_op_num_threads, options.inter_op_num_threads = max(1, threads), 1
+        self._session = ort.InferenceSession(str(folder / "sketch.onnx"), sess_options=options, providers=["CPUExecutionProvider"])
 
     def probabilities(self, raw: np.ndarray, fraction: float) -> np.ndarray:
         """Class probabilities when only `fraction` of the drawing's ink is down: cut, simplify like the browser does, featurise, run."""
@@ -72,7 +79,8 @@ class Scorer:
 
     def predict(self, strokes, top_k: int = 5) -> list[tuple[str, float]]:
         """The model's ranked guesses for a drawing as it stands: [(label, probability), ...], best first."""
-        probs = self.probabilities(_as_array(strokes), 1.0)
+        with self._slots:
+            probs = self.probabilities(_as_array(strokes), 1.0)
         order = np.argsort(-probs)[:top_k]
         return [(self.classes[int(i)], float(probs[i])) for i in order]
 
@@ -81,7 +89,8 @@ class Scorer:
         target_idx = self.classes.index(target)
         steps = []
         for f in FRACTIONS:
-            probs = self.probabilities(raw, f)
+            with self._slots:                          # one slot per model run, so a long timeline cannot hog the processor while others wait
+                probs = self.probabilities(raw, f)
             top = int(np.argmax(probs))
             steps.append(Step(f, self.classes[top], float(probs[top]), float(probs[target_idx])))
         return steps          # the last step is the finished drawing, so it also gives the final guess
@@ -113,7 +122,7 @@ def _load(request: Request, version: str) -> Scorer:
     folder = models_dir(settings)
     if folder is None or not (folder / version / "sketch.onnx").is_file():
         raise ApiError(503, "model_unavailable", "The scoring model is not available on this server.")
-    return Scorer(folder, version, settings.ml_root)
+    return Scorer(folder, version, settings.ml_root, settings.ort_threads, settings.scoring_concurrency)
 
 
 def reload_active(request: Request) -> str:

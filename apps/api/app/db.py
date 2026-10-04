@@ -20,9 +20,17 @@ def make_engine(url: str) -> Engine:
             kwargs["poolclass"] = StaticPool       # one shared in-memory DB (tests)
     engine = create_engine(url, pool_pre_ping=True, **kwargs)
     if url.startswith("sqlite"):
+        in_memory = ":memory:" in url or url in ("sqlite://", "sqlite:///")
+
         @event.listens_for(engine, "connect")
-        def _fk_on(dbapi_conn, _):                 # SQLite ignores foreign keys unless asked
-            dbapi_conn.execute("PRAGMA foreign_keys=ON")
+        def _pragmas(dbapi_conn, _):
+            dbapi_conn.execute("PRAGMA foreign_keys=ON")            # SQLite ignores foreign keys unless asked
+            if not in_memory:
+                # Write-ahead logging lets readers run while one writer commits, and synchronous=NORMAL is safe with it (a crash can lose the last
+                # commit but never corrupt the file). Without this every request that records usage queued behind the one before it on a file lock.
+                dbapi_conn.execute("PRAGMA journal_mode=WAL")
+                dbapi_conn.execute("PRAGMA synchronous=NORMAL")
+                dbapi_conn.execute("PRAGMA busy_timeout=30000")
     return engine
 
 
