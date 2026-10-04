@@ -77,7 +77,7 @@ def test_promoting_a_model_that_holds_up_makes_it_live(models, heldout):
     report = registry.promote("v1b", models, heldout=heldout)
     q = report["comparison"]["verdict"]["quickdraw"]
     assert report["passed"] and registry.load(models)["active"] == "v1b" and q["delta"] == pytest.approx(0, abs=1e-9)
-    assert q["n"] == 90 and q["active_top5"] > 0.8                                        # a real measurement on real sketches, not a stub
+    assert q["n"] == 90 and q["candidate_unmasked_n"] == q["n"] and q["active_top5"] > 0.8                                        # a real measurement on real sketches, not a stub
     last = registry.load(models)["history"][-1]
     assert last["event"] == "promoted" and last["gate"] == "passed" and last["previous"] == "v1"
 
@@ -155,3 +155,16 @@ def test_masking_makes_models_comparable_on_shared_classes(models):
     masked = evaluate(m, sk, lb, restrict_to={"cat", "dog", "house"})
     assert free["n"] == 90 and masked["n"] == 9                                           # only those classes' sketches are scored
     assert mean_top5(masked) >= 0.9                                                       # with three choices, Top-5 is nearly always right
+
+
+def test_only_labels_picks_the_sketches_and_restrict_to_picks_the_answers(models):
+    """The unmasked figure must be about the SAME sketches as the masked one, with the model free to answer with any class."""
+    m = OnnxModel("v1", models)
+    samples = json.loads((REAL / "samples.json").read_text(encoding="utf-8"))
+    sk, lb = [as_array(s["strokes"]) for s in samples], [s["label"] for s in samples]
+    three = {"cat", "dog", "house"}
+    masked = evaluate(m, sk, lb, restrict_to=three)
+    free = evaluate(m, sk, lb, only_labels=three)
+    assert masked["n"] == free["n"] == 9                                                  # the same nine sketches
+    assert mean_top5(free) <= mean_top5(masked) + 1e-9                                    # ruling out 27 more classes can only be harder or equal
+    assert evaluate(m, sk, lb)["n"] == 90                                                 # neither switch: every sketch of a known class

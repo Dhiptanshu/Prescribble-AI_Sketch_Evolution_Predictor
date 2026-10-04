@@ -44,16 +44,21 @@ class OnnxModel:
         return out[0][0]
 
 
-def evaluate(model: OnnxModel, sketches: list[np.ndarray], labels: list[str], fractions=FRACTIONS, restrict_to: set[str] | None = None) -> dict:
-    """Top-1 / Top-5 per fraction over the sketches whose label the model knows (and, with `restrict_to`, whose label is in that set).
+def evaluate(model: OnnxModel, sketches: list[np.ndarray], labels: list[str], fractions=FRACTIONS, restrict_to: set[str] | None = None,
+             only_labels: set[str] | None = None) -> dict:
+    """Top-1 / Top-5 per fraction over the sketches whose label the model knows.
 
-    With `restrict_to` the model may only answer with those classes (everything else is masked out), which makes a 30-class model and a
-    100-class model comparable on the 30 classes they share. Without it the model chooses among all its own classes.
+    Two independent switches. `only_labels` chooses WHICH sketches are scored (those whose label is in the set). `restrict_to` chooses what the
+    model may ANSWER: only those classes, everything else masked out; that makes a 30-class model and a 100-class model comparable on the 30
+    classes they share. When only `restrict_to` is given it also selects the sketches (the classic comparison). With neither, every sketch of a
+    known class is scored and the model chooses among all its own classes. To ask how a big model does on a few classes while it still has to
+    rule out all the others, pass only_labels and leave restrict_to unset.
     Returns {"n": count, "fractions": {"0.2": {"top1": .., "top5": ..}, ...}}.
     """
     known = {c: i for i, c in enumerate(model.classes)}
     allowed = np.array([c in restrict_to for c in model.classes]) if restrict_to is not None else np.ones(len(model.classes), bool)
-    keep = [k for k, lab in enumerate(labels) if lab in known and (restrict_to is None or lab in restrict_to)]
+    scope = only_labels if only_labels is not None else restrict_to
+    keep = [k for k, lab in enumerate(labels) if lab in known and (scope is None or lab in scope)]
     out = {}
     for f in fractions:
         c1 = c5 = 0

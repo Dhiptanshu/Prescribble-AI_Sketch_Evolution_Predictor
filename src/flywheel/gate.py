@@ -30,9 +30,9 @@ def _quickdraw(path: Path, per_class: int) -> tuple[list, list[str]]:
 def _yardstick(active: OnnxModel, cand: OnnxModel, sketches, labels, shared: set[str], tolerance: float) -> dict:
     a = evaluate(active, sketches, labels, restrict_to=shared)
     c = evaluate(cand, sketches, labels, restrict_to=shared)
-    free = evaluate(cand, sketches, labels, restrict_to=None)           # unmasked, over the labels the candidate knows
+    free = evaluate(cand, sketches, labels, only_labels=shared, restrict_to=None)     # the SAME sketches, but the candidate may answer with any of its classes
     ma, mc = mean_top5(a), mean_top5(c)
-    return {"n": a["n"], "active_top5": ma, "candidate_top5": mc, "delta": mc - ma, "candidate_unmasked_top5": mean_top5(free),
+    return {"n": a["n"], "active_top5": ma, "candidate_top5": mc, "delta": mc - ma, "candidate_unmasked_top5": mean_top5(free), "candidate_unmasked_n": free["n"],
             "ok": mc >= ma - tolerance, "by_fraction": {"active": a["fractions"], "candidate": c["fractions"], "candidate_unmasked": free["fractions"]}}
 
 
