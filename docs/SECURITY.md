@@ -47,7 +47,7 @@ Scope: the web app, the API, the live-room WebSocket, the Docker image and the o
 | Python dependencies | `pip-audit` on `apps/api/requirements.txt`: **no known vulnerabilities** (3 Oct 2026; CI repeats it) ✅ |
 | JavaScript dependencies | `npm audit --omit=dev`: **2 moderate**, both `react-router` "arbitrary constructor injection via `deserializeErrors()` in SSR hydration". This app is a client-only single-page app and never uses server-side rendering or that function, so it is not reachable. Fixing it means a major-version upgrade of React Router; CI fails only on high or critical ⚠️ |
 | Secrets in git | `.env`, databases and keys are git-ignored. A search of every tracked file and of the whole history for secret-like assignments, key files (`.env`, `.pem`, `kaggle.json`...) and private-key blocks found none (3 Oct 2026) ✅ |
-| Container | non-root user, no build tools in the final image, health check, data on a volume. The image builds; its running state is checked by `scripts/verify_deploy.py` (see DEPLOY.md for what has and has not been verified) |
+| Container | non-root user, no build tools in the final image, health check, data on a volume. CI builds the image and `scripts/verify_deploy.py` checks the running container (see DEPLOY.md) |
 | Backups | `python -m app.cli backup` (consistent, verified, pruned) and `restore`, tested including a backup taken while the app writes ✅ |
 | Logging | access log has method, path, status and timing; no bodies, cookies or passwords. Paths of shared drawings contain their share token (anyone who can read the log can open those links) ⚠️ |
 | Admin dashboard | admin only; owners shown by display name, never by email ✅ |

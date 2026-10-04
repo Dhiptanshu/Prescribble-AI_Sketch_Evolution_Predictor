@@ -60,7 +60,7 @@ cp deploy/.env.example deploy/.env            # set SECRET_KEY (and COOKIE_SECUR
 docker compose -f deploy/docker-compose.yml --env-file deploy/.env up --build
 # optional PostgreSQL:  add  --profile postgres  and set POSTGRES_PASSWORD + DATABASE_URL in deploy/.env
 ```
-The compose file validates (`docker compose config`); the image build itself has not been run on this machine yet (Docker Desktop was not running).
+The compose file validates (`docker compose config`). CI builds the image on Ubuntu, starts the container and runs `scripts/verify_deploy.py` against it (the job `Docker image builds and the running container passes the deployment check`).
 
 ## Lab bundle for the new web app
 ```bash
