@@ -104,7 +104,7 @@ B.Tech (CS&E)
 
 | Screen (route) | What it does |
 |---|---|
-| **Studio** (`/studio`) | Free draw with live Top-5 guesses and a confidence-over-time chart; an **AI challenge** mode; **Watch real sketches** replays held-out QuickDraw sketches through the real model. Saving a drawing needs an account. |
+| **Studio** (`/studio`) | Free draw with live Top-5 guesses and a confidence-over-time chart; an **AI challenge** mode (the AI wins when it names the word with at least 50% confidence: an "AI wins" popup appears and the pen is stopped at the drawing the AI saw, so the race is fair); **Watch real sketches** replays held-out QuickDraw sketches through the real model. Saving a drawing needs an account. |
 | **Landing** (`/`) | A live demo: a real held-out sketch replayed stroke by stroke through the real model, with the model's measured numbers. |
 | **Daily challenge** (`/challenge`) | One word a day; up to 3 scored attempts per user per UTC day; leaderboard. Scores are computed on the server with the same pipeline code the model was trained with. |
 | **Classrooms** (`/classroom`, `/join`, `/room/:id`) | A teacher opens a room; students join with a 6-character code and a nickname (**no account**). Timed rounds with one word, live updates over a WebSocket, scores hidden until the round ends. |
