@@ -24,6 +24,20 @@ export async function draw(page: Page, strokes: [number, number][][]) {
   }
 }
 
+/** Like draw(), but the pen stays DOWN at the end of the last stroke (the caller keeps moving it or releases it): for tests of what happens mid-stroke. */
+export async function drawKeepingPenDown(page: Page, strokes: [number, number][][]) {
+  const box = await page.locator("canvas.draw").boundingBox();
+  if (!box) throw new Error("drawing canvas not found");
+  const at = ([x, y]: [number, number]) => ({ x: box.x + (x / 255) * box.width, y: box.y + (y / 255) * box.height });
+  for (const [i, s] of strokes.entries()) {
+    const first = at(s[0]!);
+    await page.mouse.move(first.x, first.y);
+    await page.mouse.down();
+    for (const p of s.slice(1)) { const q = at(p); await page.mouse.move(q.x, q.y, { steps: 4 }); }
+    if (i < strokes.length - 1) await page.mouse.up();
+  }
+}
+
 export const HOUSE: [number, number][][] = [
   [[60, 120], [60, 210], [200, 210], [200, 120], [60, 120]],     // walls
   [[50, 125], [130, 55], [210, 125]],                            // roof
