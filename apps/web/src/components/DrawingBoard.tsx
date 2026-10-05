@@ -56,7 +56,7 @@ export const DrawingBoard = forwardRef<BoardHandle, Props>(function DrawingBoard
   useImperativeHandle(ref, () => ({
     strokes: () => strokes.current,
     inputType: () => (strokes.current.length ? input.current : null),
-    set: (s) => { strokes.current = s; render(); emit("set"); },
+    set: (s) => { drawing.current = false; strokes.current = s; render(); emit("set"); },
     clear: () => { strokes.current = []; render(); emit("clear"); },
     undo: () => { strokes.current = strokes.current.slice(0, -1); render(); emit("undo"); },
   }), [render]);   // emit only touches refs and a stable setState
@@ -98,6 +98,7 @@ export const DrawingBoard = forwardRef<BoardHandle, Props>(function DrawingBoard
         }}
         onPointerMove={(e) => {
           if (!drawing.current) return;
+          if (lockedRef.current) { drawing.current = false; emit("end"); return; }        // locked mid-stroke (the AI won): the pen stops drawing
           const s = strokes.current[strokes.current.length - 1]!, p = pos(e), q = s[s.length - 1]!;
           if (Math.hypot(p[0] - q[0], p[1] - q[1]) < 0.8) return;
           s.push(p); render(); emit("move");

@@ -6,6 +6,8 @@ import type { BoardHandle } from "../../../components/DrawingBoard";
 export interface ModeContext {
   classes: string[];
   last: Prediction | null;
+  /** The strokes `last` was computed from. */
+  lastInput: import("@prescribble/engine").Stroke[] | null;
   boardRef: RefObject<BoardHandle>;
   /** Run the model on a drawing and wait for that exact result (used by scripted playback). */
   predictNow: (strokes: import("@prescribble/engine").Stroke[], record?: boolean) => Promise<Prediction | null>;

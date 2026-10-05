@@ -4,6 +4,9 @@ import type { Prediction, SketchModel, Stroke } from "@prescribble/engine";
 
 export interface HistoryPoint { ink: number; probs: Float32Array; order: number[] }
 
+/** An independent copy: the board keeps pushing points onto its live strokes while a prediction is still running. */
+const snapshot = (strokes: Stroke[]): Stroke[] => strokes.map((s) => s.map(([x, y]) => [x, y] as [number, number]));
+
 interface Job { strokes: Stroke[]; record: boolean; resolve: (p: Prediction | null) => void }
 
 /**
@@ -13,6 +16,8 @@ interface Job { strokes: Stroke[]; record: boolean; resolve: (p: Prediction | nu
  */
 export function usePredictionLoop(model: SketchModel | null) {
   const [last, setLast] = useState<Prediction | null>(null);
+  /** Exactly the strokes `last` was computed from (not whatever the user has drawn since). */
+  const [lastInput, setLastInput] = useState<Stroke[] | null>(null);
   const [history, setHistory] = useState<HistoryPoint[]>([]);
   const busy = useRef(false);
   const pending = useRef<Job | null>(null);
@@ -30,12 +35,13 @@ export function usePredictionLoop(model: SketchModel | null) {
             const job = pending.current;
             pending.current = null;
             if (!job.strokes.length) {
-              setLast(null); setHistory([]); job.resolve(null);
+              setLast(null); setLastInput(null); setHistory([]); job.resolve(null);
               continue;
             }
-            const pred = await model.predict(job.strokes);
+            const seen = snapshot(job.strokes);
+            const pred = await model.predict(seen);
             if (pred) {
-              const ink = inkLength(job.strokes);
+              const ink = inkLength(seen);
               const point: HistoryPoint = { ink, probs: pred.probs, order: pred.top5.map((g) => g.idx) };
               setHistory((h) => {
                 const prev = h[h.length - 1];
@@ -43,6 +49,7 @@ export function usePredictionLoop(model: SketchModel | null) {
               });
             }
             setLast(pred);
+            setLastInput(pred ? seen : null);
             job.resolve(pred);
           }
         } finally {
@@ -56,8 +63,9 @@ export function usePredictionLoop(model: SketchModel | null) {
     pending.current?.resolve(null);
     pending.current = null;
     setLast(null);
+    setLastInput(null);
     setHistory([]);
   }, []);
 
-  return { last, history, run, reset };
+  return { last, lastInput, history, run, reset };
 }

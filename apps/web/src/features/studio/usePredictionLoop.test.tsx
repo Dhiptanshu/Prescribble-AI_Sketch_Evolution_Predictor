@@ -60,6 +60,20 @@ describe("usePredictionLoop", () => {
     expect(result.current.history).toEqual([]);
   });
 
+  it("keeps the exact strokes a prediction was computed from, even if the board keeps drawing", async () => {
+    const { model, calls } = fakeModel();
+    const { result } = renderHook(() => usePredictionLoop(model));
+    const live = stroke(50);                                  // the board's own array: it keeps growing while the model runs
+    let p!: Promise<Prediction | null>;
+    act(() => { p = result.current.run(live); });
+    await waitFor(() => expect(calls).toHaveLength(1));
+    live[0]!.push([90, 0]);                                   // the user draws on while the prediction is running
+    live.push([[1, 1], [2, 2]]);
+    await act(async () => { calls[0]!.release(); await p; });
+    expect(result.current.lastInput).toEqual([[[0, 0], [50, 0]]]);
+    expect(result.current.lastInput).not.toBe(live);
+  });
+
   it("does nothing without a model", async () => {
     const { result } = renderHook(() => usePredictionLoop(null));
     expect(await result.current.run(stroke(5))).toBeNull();

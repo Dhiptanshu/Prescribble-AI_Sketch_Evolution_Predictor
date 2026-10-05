@@ -37,7 +37,7 @@ export function StudioPage() {
   };
 
   const ctx: ModeContext = {
-    classes: model?.classes ?? [], last: loop.last, boardRef, predictNow: loop.run,
+    classes: model?.classes ?? [], last: loop.last, lastInput: loop.lastInput, boardRef, predictNow: loop.run,
     setLocked, setBanner, setTruth, setProgress,
   };
   const freeBanner = "Draw anything from the list. The AI updates its guesses after every stroke.";

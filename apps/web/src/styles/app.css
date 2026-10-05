@@ -199,3 +199,11 @@ td.actions .btn { padding: 4px 10px; font-size: 13px; }
 .mini-tiles.two { grid-template-columns: repeat(2, 1fr); }
 ul.plain { margin: 0 0 18px; padding-left: 18px; display: grid; gap: 8px; color: var(--muted); font-size: 14px; }
 .class-list { margin-top: 8px; } .class-list summary { cursor: pointer; font-size: 13.5px; color: var(--muted); } .class-list p { margin-top: 6px; line-height: 1.7; }
+
+/* Modal dialog (the "AI wins" popup) */
+.modal-backdrop { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px; background: rgba(5, 7, 15, .62); backdrop-filter: blur(3px); }
+.modal { width: min(420px, 100%); text-align: center; animation: modal-pop .22s ease-out; }
+.modal-title { margin: 0 0 6px; font-size: 40px; font-weight: 800; letter-spacing: -.03em; }
+.modal-actions { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
+@keyframes modal-pop { from { opacity: 0; transform: scale(.92) translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .modal { animation: none; } }
